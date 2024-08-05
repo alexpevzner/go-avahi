@@ -100,6 +100,10 @@ func (clnt *Client) Close() {
 
 // Chan returns a channel where [ClientState] change events
 // are delivered.
+//
+// Client.Close closes the sending side of this channel, effectively
+// unblocking pending receivers. Once Client is closed, any attempt
+// to read from this channel will return [ClientStateClosed] value.
 func (clnt *Client) Chan() <-chan ClientState {
 	return clnt.evq.Chan()
 }

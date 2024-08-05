@@ -19,6 +19,9 @@ type ClientState int
 
 // ClientState values:
 const (
+	// Invalid (initial) state.
+	ClientStateClosed ClientState = 0
+
 	// Avahi server is being registering host RRs on a network
 	ClientStateRegistering ClientState = C.AVAHI_CLIENT_S_REGISTERING
 
