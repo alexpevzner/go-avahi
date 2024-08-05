@@ -19,7 +19,8 @@ type ClientState int
 
 // ClientState values:
 const (
-	// Invalid (initial) state.
+	// Invalid (zero) state. This state is reported when
+	// [Client] is closed with the [Client.Close] call.
 	ClientStateClosed ClientState = 0
 
 	// Avahi server is being registering host RRs on a network
