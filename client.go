@@ -11,7 +11,6 @@
 package avahi
 
 import (
-	"errors"
 	"fmt"
 	"unsafe"
 )
@@ -47,7 +46,7 @@ func NewClient() (*Client, error) {
 	// each client to simplify things.
 	threadedPoll := C.avahi_threaded_poll_new()
 	if threadedPoll == nil {
-		return nil, errors.New("avahi: not enough memory")
+		return nil, ErrNoMemory
 	}
 
 	// Create Avahi client
