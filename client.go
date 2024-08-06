@@ -101,6 +101,42 @@ func (clnt *Client) Chan() <-chan ClientState {
 	return clnt.queue.Chan()
 }
 
+// GetVersionString returns avahi-daemon version string
+func (clnt *Client) GetVersionString() string {
+	clnt.begin()
+	defer clnt.end()
+
+	s := C.avahi_client_get_version_string(clnt.avahiClient)
+	return C.GoString(s)
+}
+
+// GetHostName returns host name (e.g., "name")
+func (clnt *Client) GetHostName() string {
+	clnt.begin()
+	defer clnt.end()
+
+	s := C.avahi_client_get_host_name(clnt.avahiClient)
+	return C.GoString(s)
+}
+
+// GetDomainName returns domain name (e.g., "local")
+func (clnt *Client) GetDomainName() string {
+	clnt.begin()
+	defer clnt.end()
+
+	s := C.avahi_client_get_domain_name(clnt.avahiClient)
+	return C.GoString(s)
+}
+
+// GetHostFQDN returns FQDN host name (e.g., "name.local")
+func (clnt *Client) GetHostFQDN() string {
+	clnt.begin()
+	defer clnt.end()
+
+	s := C.avahi_client_get_host_name_fqdn(clnt.avahiClient)
+	return C.GoString(s)
+}
+
 // begin locks the Client event loop and returns *C.AvahiClient.
 //
 // All operations that affects underlying AvahiClient must begin

@@ -22,6 +22,11 @@ func TestClient(t *testing.T) {
 		return
 	}
 
+	fmt.Printf("avahi version: %q\n", clnt.GetVersionString())
+	fmt.Printf("Host name:     %q\n", clnt.GetHostName())
+	fmt.Printf("Domain name:   %q\n", clnt.GetDomainName())
+	fmt.Printf("Host FQDN:     %q\n", clnt.GetHostFQDN())
+
 	state := <-clnt.Chan()
 	println(state.String())
 
