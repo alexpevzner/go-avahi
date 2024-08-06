@@ -149,6 +149,7 @@ func serviceBrowserCallback(
 		Event:    BrowserEvent(event),
 		IfIndex:  IfIndex(ifindex),
 		Protocol: Protocol(proto),
+		Err:      browser.clnt.errno(),
 		Flags:    LookupResultFlags(flags),
 		Name:     C.GoString(name),
 		Type:     C.GoString(svctype),
