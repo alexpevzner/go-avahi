@@ -14,8 +14,46 @@ import (
 	"strings"
 )
 
-// #include <avahi-client/client.h>
+// #include <avahi-common/defs.h>
 import "C"
+
+// LookupFlags provides some options for lookup functions
+type LookupFlags int
+
+// LookupFlags values
+const (
+	// Force lookup via wide area DNS
+	LookupUseWideArea LookupFlags = C.AVAHI_LOOKUP_USE_WIDE_AREA
+
+	// Force lookup via multicast DNS
+	LookupUseMulticast LookupFlags = C.AVAHI_LOOKUP_USE_MULTICAST
+
+	// When doing service resolving, don't lookup TXT record
+	LookupNoTXT LookupFlags = C.AVAHI_LOOKUP_NO_TXT
+
+	// When doing service resolving, don't lookup A/AAAA records
+	LookupNoAddress LookupFlags = C.AVAHI_LOOKUP_NO_ADDRESS
+)
+
+// String returns LookupFlags as string, for debugging
+func (flags LookupFlags) String() string {
+	s := []string{}
+
+	if flags&LookupUseWideArea != 0 {
+		s = append(s, "use-wan")
+	}
+	if flags&LookupUseMulticast != 0 {
+		s = append(s, "use-mdns")
+	}
+	if flags&LookupNoTXT != 0 {
+		s = append(s, "no-txt")
+	}
+	if flags&LookupNoAddress != 0 {
+		s = append(s, "no-addr")
+	}
+
+	return strings.Join(s, ",")
+}
 
 // LookupResultFlags provides some additional information about
 // lookup response.
@@ -58,7 +96,7 @@ func (flags LookupResultFlags) String() string {
 	if flags&LookupResultMulticast != 0 {
 		s = append(s, "mdns")
 	}
-	if LookupResultLocal&LookupResultCached != 0 {
+	if flags&LookupResultCached != 0 {
 		s = append(s, "local")
 	}
 	if flags&LookupResultOurOwn != 0 {
