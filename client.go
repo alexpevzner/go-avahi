@@ -66,6 +66,7 @@ func NewClient() (*Client, error) {
 
 	if clnt.avahiClient == nil {
 		C.avahi_threaded_poll_free(threadedPoll)
+		clnt.queue.Close()
 		clnt.handle.Delete()
 		return nil, fmt.Errorf("avahi: error %d", rc)
 	}
@@ -79,8 +80,13 @@ func NewClient() (*Client, error) {
 // Close closes a [Client].
 func (clnt *Client) Close() {
 	C.avahi_threaded_poll_stop(clnt.threadedPoll)
+
 	C.avahi_client_free(clnt.avahiClient)
+	clnt.avahiClient = nil
+
 	C.avahi_threaded_poll_free(clnt.threadedPoll)
+	clnt.threadedPoll = nil
+
 	clnt.queue.Close()
 	clnt.handle.Delete()
 }
@@ -93,6 +99,28 @@ func (clnt *Client) Close() {
 // to read from this channel will return [ClientStateClosed] value.
 func (clnt *Client) Chan() <-chan ClientState {
 	return clnt.queue.Chan()
+}
+
+// begin locks the Client event loop and returns *C.AvahiClient.
+//
+// All operations that affects underlying AvahiClient must begin
+// with this call.
+//
+// Caller MUST call Client.end after end of operation.
+func (clnt *Client) begin() *C.AvahiClient {
+	C.avahi_threaded_poll_lock(clnt.threadedPoll)
+	return clnt.avahiClient
+}
+
+// end must be called after completion of any operation, started
+// with Client.begin.
+func (clnt *Client) end() {
+	C.avahi_threaded_poll_unlock(clnt.threadedPoll)
+}
+
+// errno returns an error code of latest failed operation.
+func (clnt *Client) errno() ErrCode {
+	return ErrCode(C.avahi_client_errno(clnt.avahiClient))
 }
 
 // clientCallback called by AvahiClient to report client state change
