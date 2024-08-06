@@ -55,8 +55,9 @@ type ServiceBrowserEvent struct {
 
 // NewServiceBrowser creates a new [ServiceBrowser].
 //
-// ServiceBrowser constantly monitors the network and generates
-// [ServiceBrowserEvent] events via channel returned by the
+// ServiceBrowser constantly monitors the network for the available
+// services of specified type and reports discovered information as
+// a series of [ServiceBrowserEvent] events via channel returned by the
 // [ServiceBrowser.Chan]
 //
 // Function parameters:
