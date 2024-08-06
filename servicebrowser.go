@@ -23,9 +23,9 @@ import (
 //	AvahiIfIndex interface,
 //	AvahiProtocol proto,
 //	AvahiBrowserEvent event,
-//	const char *name,
-//	const char *type,
-//	const char *domain,
+//	char *name,
+//	char *type,
+//	char *domain,
 //	AvahiLookupResultFlags flags,
 //	void *userdata);
 import "C"
@@ -134,16 +134,18 @@ func (browser *ServiceBrowser) Close() {
 
 // serviceBrowserCallback called by AvahiServiceBrowser to
 // report discovered services
+//
+//export serviceBrowserCallback
 func serviceBrowserCallback(
 	b *C.AvahiServiceBrowser,
 	ifindex C.AvahiIfIndex,
 	proto C.AvahiProtocol,
-	event BrowserEvent,
+	event C.AvahiBrowserEvent,
 	name, svctype, domain *C.char,
 	flags C.AvahiLookupResultFlags,
 	p unsafe.Pointer) {
 
-	browser := *(*cgo.Handle)(p).Value().(*ServiceBrowser)
+	browser := (*cgo.Handle)(p).Value().(*ServiceBrowser)
 
 	evnt := &ServiceBrowserEvent{
 		Event:    BrowserEvent(event),

@@ -10,7 +10,10 @@
 
 package avahi
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestClient(t *testing.T) {
 	clnt, err := NewClient()
@@ -21,4 +24,19 @@ func TestClient(t *testing.T) {
 
 	state := <-clnt.Chan()
 	println(state.String())
+
+	browser, err := NewServiceBrowser(clnt,
+		IfIndexUnspec, ProtocolUnspec,
+		"_http._tcp", "", 0)
+	if err != nil {
+		t.Errorf("%s", err)
+		return
+	}
+
+	for evnt := range browser.Chan() {
+		fmt.Printf("%#v\n", evnt)
+		if evnt.Event == BrowserCacheExhausted {
+			break
+		}
+	}
 }
