@@ -29,9 +29,10 @@ import (
 //	void *userdata);
 import "C"
 
-// ServiceTypeBrowser returns available services of the specified type.
-// Service type is a string that looks like "_http._tcp", "_ipp._tcp"
-// and so on.
+// ServiceTypeBrowser reports available service types across the network.
+//
+// If you a looking for services of the particular type, probably you
+// need to use [ServiceBrowser] instead.
 type ServiceTypeBrowser struct {
 	clnt         *Client                              // Owning Client
 	handle       cgo.Handle                           // Handle to self
@@ -68,6 +69,9 @@ type ServiceTypeBrowserEvent struct {
 //     default domain is used, which depends on a avahi-daemon configuration
 //     and usually is ".local"
 //   - flags provide some lookup options. See [LookupFlags] for details.
+//
+// ServiceTypeBrowser must be closed after use with the
+// [ServiceTypeBrowser.Close] function call.
 func NewServiceTypeBrowser(
 	clnt *Client,
 	ifindex IfIndex,

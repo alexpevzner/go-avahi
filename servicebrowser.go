@@ -30,7 +30,8 @@ import (
 //	void *userdata);
 import "C"
 
-// ServiceBrowser returns available services of the specified type.
+// ServiceBrowser reports available services of the specified type.
+//
 // Service type is a string that looks like "_http._tcp", "_ipp._tcp"
 // and so on.
 type ServiceBrowser struct {
@@ -71,6 +72,9 @@ type ServiceBrowserEvent struct {
 //     default domain is used, which depends on a avahi-daemon configuration
 //     and usually is ".local"
 //   - flags provide some lookup options. See [LookupFlags] for details.
+//
+// ServiceBrowser must be closed after use with the [ServiceBrowser.Close]
+// function call.
 func NewServiceBrowser(
 	clnt *Client,
 	ifindex IfIndex,
