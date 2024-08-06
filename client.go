@@ -19,7 +19,7 @@ import (
 // #include <avahi-client/client.h>
 // #include <avahi-common/thread-watch.h>
 //
-// void clientCallback(AvahiClient*, AvahiClientState, void*);
+// void clientCallback (AvahiClient*, AvahiClientState, void*);
 import "C"
 
 // Client is the CGo binding for [AvahiClient].
@@ -35,10 +35,10 @@ import "C"
 //
 // [AvahiClient]: https://avahi.org/doxygen/html/client_8h.html#a3d65e9ea7182c44fa8df04a72f1a56bb
 type Client struct {
-	handle       cgo.Handle           // Handle to self
-	avahiClient  *C.AvahiClient       // Underlying AvahiClient
-	threadedPoll *C.AvahiThreadedPoll // Avahi event loop
-	evq          *queue[ClientState]  // Event queue
+	handle       cgo.Handle              // Handle to self
+	avahiClient  *C.AvahiClient          // Underlying AvahiClient
+	threadedPoll *C.AvahiThreadedPoll    // Avahi event loop
+	queue        eventqueue[ClientState] // Event queue
 }
 
 // NewClient creates a new [Client].
@@ -51,12 +51,10 @@ func NewClient() (*Client, error) {
 	}
 
 	// Create Avahi client
-	clnt := &Client{
-		threadedPoll: threadedPoll,
-		evq:          newQueue[ClientState](),
-	}
+	clnt := &Client{threadedPoll: threadedPoll}
 
 	clnt.handle = cgo.NewHandle(clnt)
+	clnt.queue.init()
 
 	var rc C.int
 	clnt.avahiClient = C.avahi_client_new(
@@ -68,6 +66,7 @@ func NewClient() (*Client, error) {
 
 	if clnt.avahiClient == nil {
 		C.avahi_threaded_poll_free(threadedPoll)
+		clnt.handle.Delete()
 		return nil, fmt.Errorf("avahi: error %d", rc)
 	}
 
@@ -82,7 +81,7 @@ func (clnt *Client) Close() {
 	C.avahi_threaded_poll_stop(clnt.threadedPoll)
 	C.avahi_client_free(clnt.avahiClient)
 	C.avahi_threaded_poll_free(clnt.threadedPoll)
-	clnt.evq.Close()
+	clnt.queue.Close()
 	clnt.handle.Delete()
 }
 
@@ -93,7 +92,7 @@ func (clnt *Client) Close() {
 // unblocking pending receivers. Once Client is closed, any attempt
 // to read from this channel will return [ClientStateClosed] value.
 func (clnt *Client) Chan() <-chan ClientState {
-	return clnt.evq.Chan()
+	return clnt.queue.Chan()
 }
 
 // clientCallback called by AvahiClient to report client state change
@@ -105,5 +104,5 @@ func clientCallback(avahiClient *C.AvahiClient,
 	clntHandle := *(*cgo.Handle)(p)
 	clnt := clntHandle.Value().(*Client)
 
-	clnt.evq.Push(ClientState(s))
+	clnt.queue.Push(ClientState(s))
 }
