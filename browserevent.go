@@ -4,7 +4,7 @@
 // Copyright (C) 2024 and up by Alexander Pevzner (pzz@apevzner.com)
 // See LICENSE for license terms and conditions
 //
-// Avahi browse events
+// Avahi browser events
 //
 //go:build linux || freebsd
 
