@@ -12,6 +12,7 @@ package avahi
 
 import (
 	"fmt"
+	"runtime/cgo"
 	"unsafe"
 )
 
@@ -34,9 +35,9 @@ import "C"
 //
 // [AvahiClient]: https://avahi.org/doxygen/html/client_8h.html#a3d65e9ea7182c44fa8df04a72f1a56bb
 type Client struct {
+	handle       cgo.Handle           // Handle to self
 	avahiClient  *C.AvahiClient       // Underlying AvahiClient
 	threadedPoll *C.AvahiThreadedPoll // Avahi event loop
-	state        ClientState          // Last known state
 	evq          *queue[ClientState]  // Event queue
 }
 
@@ -50,37 +51,25 @@ func NewClient() (*Client, error) {
 	}
 
 	// Create Avahi client
-	var rc C.int
-	avahiClient := C.avahi_client_new(
-		C.avahi_threaded_poll_get(threadedPoll),
-		C.AVAHI_CLIENT_NO_FAIL,
-		C.AvahiClientCallback(C.clientCallback),
-		nil,
-		&rc)
-
-	if avahiClient == nil {
-		C.avahi_threaded_poll_free(threadedPoll)
-		return nil, fmt.Errorf("avahi: error %d", rc)
-	}
-
 	clnt := &Client{
-		avahiClient:  avahiClient,
 		threadedPoll: threadedPoll,
 		evq:          newQueue[ClientState](),
 	}
 
-	// Avahi calls callback for the first time very early, even
-	// before avahi_client_new() returns. We can't handle it at
-	// that time, between the mapping between AvahiClient and Client
-	// is not established yet.
-	//
-	// So some additional effort is required if we don't want to
-	// miss the very first state change notification.
-	state := ClientState(C.avahi_client_get_state(avahiClient))
-	clnt.state = state
-	clnt.evq.Push(state)
+	clnt.handle = cgo.NewHandle(clnt)
 
-	clientMap.Put(avahiClient, clnt)
+	var rc C.int
+	clnt.avahiClient = C.avahi_client_new(
+		C.avahi_threaded_poll_get(threadedPoll),
+		C.AVAHI_CLIENT_NO_FAIL,
+		C.AvahiClientCallback(C.clientCallback),
+		unsafe.Pointer(&clnt.handle),
+		&rc)
+
+	if clnt.avahiClient == nil {
+		C.avahi_threaded_poll_free(threadedPoll)
+		return nil, fmt.Errorf("avahi: error %d", rc)
+	}
 
 	// And now we finally ready to let AvahiClient run.
 	C.avahi_threaded_poll_start(threadedPoll)
@@ -91,10 +80,10 @@ func NewClient() (*Client, error) {
 // Close closes a [Client].
 func (clnt *Client) Close() {
 	C.avahi_threaded_poll_stop(clnt.threadedPoll)
-	clientMap.Del(clnt.avahiClient)
 	C.avahi_client_free(clnt.avahiClient)
 	C.avahi_threaded_poll_free(clnt.threadedPoll)
 	clnt.evq.Close()
+	clnt.handle.Delete()
 }
 
 // Chan returns a channel where [ClientState] change events
@@ -111,22 +100,10 @@ func (clnt *Client) Chan() <-chan ClientState {
 //
 //export clientCallback
 func clientCallback(avahiClient *C.AvahiClient,
-	s C.AvahiClientState, _ unsafe.Pointer) {
+	s C.AvahiClientState, p unsafe.Pointer) {
 
-	clnt := clientMap.Get(avahiClient)
-	if clnt == nil {
-		// First callback comes even before avahi_client_new()
-		// returns, so Client may be not in the map yet. We must
-		// handle this case here.
-		return
-	}
+	clntHandle := *(*cgo.Handle)(p)
+	clnt := clntHandle.Value().(*Client)
 
-	// As we may loose the very first callback invocation, the very
-	// first event is posted "manually". To avoid duplication, here
-	// we drop events that doesn't change last known ClientState.
-	state := ClientState(s)
-	if state != clnt.state {
-		clnt.state = state
-		clnt.evq.Push(state)
-	}
+	clnt.evq.Push(ClientState(s))
 }
