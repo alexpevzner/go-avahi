@@ -31,7 +31,7 @@ import (
 import "C"
 
 // DomainBrowser performs discovery of browsing and registration
-// domains. See [RFC6763, 11] for details.
+// domains. See [NewDomainBrowser] and [RFC6763, 11] for details.
 //
 // [RFC6763, 11]: https://datatracker.ietf.org/doc/html/rfc6763#section-11
 type DomainBrowser struct {
@@ -76,9 +76,31 @@ type DomainBrowserEvent struct {
 // NewDomainBrowser creates a new [DomainBrowser].
 //
 // DomainBrowser constantly monitors the network for the available
-// services of specified type and reports discovered information as
+// browsing/registration domains reports discovered information as
 // a series of [DomainBrowserEvent] events via channel returned by the
 // [DomainBrowser.Chan]
+//
+// Avahi documentation doesn't give a lot of explanation about purpose
+// of this functionality, but [RFC6763, 11] gives some technical for details.
+// In short, DomainBrowser performs DNS PTR queries in the following
+// special domains:
+//
+//	DomainBrowserBrowse:            b._dns-sd._udp.<domain>.
+//	DomainBrowserBrowseDefault:    db._dns-sd._udp.<domain>.
+//	DomainBrowserRegister:          r._dns-sd._udp.<domain>.
+//	DomainBrowserRegisterDefault:  dr._dns-sd._udp.<domain>.
+//	DomainBrowserLegacy:           lb._dns-sd._udp.<domain>.
+//
+// According to RFC6763, the <domain> is usually "local", (meaning
+// "perform the query using link-local multicast") or it may be learned
+// through some other mechanism, such as the DHCP "Domain" option
+// (option code 15) [RFC2132].
+//
+// So network administrator can configure some MDNS responder located
+// in the local network to provide this information for applications.
+//
+// In fact, this mechanism seems to be rarely used in practice and
+// provided here just for consistency.
 //
 // Function parameters:
 //   - clnt is the pointer to [Client]
@@ -95,6 +117,9 @@ type DomainBrowserEvent struct {
 //
 // DomainBrowser must be closed after use with the [DomainBrowser.Close]
 // function call.
+//
+// [RFC6763, 11]: https://datatracker.ietf.org/doc/html/rfc6763#section-11
+// [RFC2132]: https://datatracker.ietf.org/doc/html/rfc2132
 func NewDomainBrowser(
 	clnt *Client,
 	ifindex IfIndex,
