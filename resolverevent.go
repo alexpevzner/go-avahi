@@ -21,7 +21,7 @@ type ResolverEvent int
 // ResolverEvent values:
 const (
 	// Successful resolving
-	ResolverFould ResolverEvent = C.AVAHI_RESOLVER_FOUND
+	ResolverFound ResolverEvent = C.AVAHI_RESOLVER_FOUND
 
 	// Resolving failed due to some reason.
 	ResolverFailure ResolverEvent = C.AVAHI_RESOLVER_FAILURE
