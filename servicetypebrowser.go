@@ -58,7 +58,12 @@ type ServiceTypeBrowserEvent struct {
 // ServiceTypeBrowser constantly monitors the network for available
 // service types and reports discovered information as a series of
 // [ServiceTypeBrowserEvent] events via channel returned by the
-// [ServiceTypeBrowser.Chan]
+// [ServiceTypeBrowser.Chan].
+//
+// Technically speaking, NewServiceTypeBrowser monitors network for the
+// PTR records with the name _services._dns-sd._udp..<domain>, with the
+// domain defaulted to "local", which yields a list of all available
+// services on the network. See [RFC6763, 9] for details.
 //
 // Function parameters:
 //   - clnt is the pointer to [Client]
@@ -73,6 +78,8 @@ type ServiceTypeBrowserEvent struct {
 //
 // ServiceTypeBrowser must be closed after use with the
 // [ServiceTypeBrowser.Close] function call.
+//
+// [RFC6763, 9]: https://datatracker.ietf.org/doc/html/rfc6763#section-9
 func NewServiceTypeBrowser(
 	clnt *Client,
 	ifindex IfIndex,
