@@ -67,16 +67,37 @@ type ServiceResolverEvent struct {
 // the discovered services. Resolved information is reported via
 // channel returned by the [ServiceResolver.Chan].
 //
+// If IP address and/or TXT record is not needed, resolving of these
+// parameters may be suppressed, using LookupNoAddress/LookupNoTXT
+// [LookupFlags].
+//
+// Please notice, it is a common practice to register a service
+// with a zero port value as a "placeholder" for missed service.
+// For example, printers always register the "_printer._tcp" service
+// to reserve the service name, but if LPD protocol is actually not
+// supported, it will be registered with zero port.
+//
+// This is important to understand the difference between transport
+// protocol and
+//
+// The IP4/IP6 protocol is specified twice. The "proto" parameter specifies
+// the transport protocol, used for queries. The "addrproto" parameter
+// specifies, which kind of addresses (A/AAAA records) we are interested
+// in.
+//
 // Function parameters:
 //   - clnt is the pointer to [Client]
 //   - ifindex is the network interface index. Use [IfIndexUnspec]
-//     to monitor all interfaces.
+//     to specify all interfaces.
 //   - proto is the IP4/IP6 protocol, used as transport for queries. If
 //     set to [ProtocolUnspec], both protocols will be used.
+//   - name is the service name, as reported by [ServiceBrowserEvent.Name]
 //   - svctype is the service type we are looking for (e.g., "_http._tcp")
 //   - domain is domain where service is looked. If set to "", the
 //     default domain is used, which depends on a avahi-daemon configuration
 //     and usually is ".local"
+//   - addrproto specifies a protocol family of IP addresses we are
+//     interested in. See explanation above for details.
 //   - flags provide some lookup options. See [LookupFlags] for details.
 //
 // ServiceResolver must be closed after use with the [ServiceResolver.Close]

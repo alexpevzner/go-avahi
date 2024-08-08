@@ -62,6 +62,12 @@ type ServiceBrowserEvent struct {
 // a series of [ServiceBrowserEvent] events via channel returned by the
 // [ServiceBrowser.Chan]
 //
+// Technically speaking, ServiceBrowser monitors network for the PTR
+// records with the name <svctype>.<domain>, with domain defaulted
+// to "local". I.e., if requested svctype is the "_http._tcp" and
+// domain is "", it will look for the PTR records with name
+// "_http._tcp.local.".
+//
 // Function parameters:
 //   - clnt is the pointer to [Client]
 //   - ifindex is the network interface index. Use [IfIndexUnspec]
