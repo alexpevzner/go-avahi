@@ -11,6 +11,7 @@
 package avahi
 
 import (
+	"context"
 	"runtime/cgo"
 	"unsafe"
 )
@@ -121,6 +122,22 @@ func NewRecordBrowser(
 // Chan returns channel where [RecordBrowserEvent]s are sent.
 func (browser *RecordBrowser) Chan() <-chan *RecordBrowserEvent {
 	return browser.queue.Chan()
+}
+
+// Get waits for the next [RecordBrowserEvent].
+//
+// It returns:
+//   - event, nil - if event available
+//   - nil, error - if context is canceled
+//   - nil, nil   - if RecordBrowser was closed
+func (browser *RecordBrowser) Get(ctx context.Context) (*RecordBrowserEvent,
+	error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case evnt := <-browser.Chan():
+		return evnt, nil
+	}
 }
 
 // Close closes the [RecordBrowser] and releases allocated resources.

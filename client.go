@@ -11,6 +11,7 @@
 package avahi
 
 import (
+	"context"
 	"fmt"
 	"runtime/cgo"
 	"unsafe"
@@ -99,6 +100,21 @@ func (clnt *Client) Close() {
 // to read from this channel will return [ClientStateClosed] value.
 func (clnt *Client) Chan() <-chan ClientState {
 	return clnt.queue.Chan()
+}
+
+// Get waits for the next [ClientState].
+//
+// It returns:
+//   - state, nil - on success
+//   - 0, error   - if context is canceled
+//   - 0, nil     - if Client was closed
+func (clnt *Client) Get(ctx context.Context) (ClientState, error) {
+	select {
+	case <-ctx.Done():
+		return 0, ctx.Err()
+	case state := <-clnt.Chan():
+		return state, nil
+	}
 }
 
 // GetVersionString returns avahi-daemon version string

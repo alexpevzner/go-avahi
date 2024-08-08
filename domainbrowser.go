@@ -11,6 +11,7 @@
 package avahi
 
 import (
+	"context"
 	"runtime/cgo"
 	"unsafe"
 )
@@ -167,6 +168,22 @@ func NewDomainBrowser(
 // Chan returns channel where [DomainBrowserEvent]s are sent.
 func (browser *DomainBrowser) Chan() <-chan *DomainBrowserEvent {
 	return browser.queue.Chan()
+}
+
+// Get waits for the next [DomainBrowserEvent].
+//
+// It returns:
+//   - event, nil - if event available
+//   - nil, error - if context is canceled
+//   - nil, nil   - if DomainBrowser was closed
+func (browser *DomainBrowser) Get(ctx context.Context) (*DomainBrowserEvent,
+	error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case evnt := <-browser.Chan():
+		return evnt, nil
+	}
 }
 
 // Close closes the [DomainBrowser] and releases allocated resources.

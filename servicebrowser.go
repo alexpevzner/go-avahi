@@ -11,6 +11,7 @@
 package avahi
 
 import (
+	"context"
 	"runtime/cgo"
 	"unsafe"
 )
@@ -123,6 +124,22 @@ func NewServiceBrowser(
 // Chan returns channel where [ServiceBrowserEvent]s are sent.
 func (browser *ServiceBrowser) Chan() <-chan *ServiceBrowserEvent {
 	return browser.queue.Chan()
+}
+
+// Get waits for the next [ServiceBrowserEvent].
+//
+// It returns:
+//   - event, nil - if event available
+//   - nil, error - if context is canceled
+//   - nil, nil   - if ServiceBrowser was closed
+func (browser *ServiceBrowser) Get(ctx context.Context) (*ServiceBrowserEvent,
+	error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case evnt := <-browser.Chan():
+		return evnt, nil
+	}
 }
 
 // Close closes the [ServiceBrowser] and releases allocated resources.

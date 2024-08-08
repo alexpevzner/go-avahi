@@ -11,6 +11,7 @@
 package avahi
 
 import (
+	"context"
 	"net/netip"
 	"runtime/cgo"
 	"unsafe"
@@ -130,6 +131,22 @@ func NewServiceResolver(
 // Chan returns channel where [ServiceResolverEvent]s are sent.
 func (resolver *ServiceResolver) Chan() <-chan *ServiceResolverEvent {
 	return resolver.queue.Chan()
+}
+
+// Get waits for the next [ServiceResolver].
+//
+// It returns:
+//   - event, nil - if event available
+//   - nil, error - if context is canceled
+//   - nil, nil   - if ServiceResolver was closed
+func (resolver *ServiceResolver) Get(ctx context.Context) (
+	*ServiceResolverEvent, error) {
+	select {
+	case <-ctx.Done():
+		return nil, ctx.Err()
+	case evnt := <-resolver.Chan():
+		return evnt, nil
+	}
 }
 
 // Close closes the [ServiceResolver] and releases allocated resources.
