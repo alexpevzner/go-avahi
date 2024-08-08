@@ -11,6 +11,24 @@
 /*
 Package avahi provides a fairly complete CGo binding for [Avahi] client.
 
+Please notice, there is an alternative Avahi binding for go:
+
+  - GitHub project: https://github.com/holoplot/go-avahi
+  - The documentation: https://pkg.go.dev/github.com/holoplot/go-avahi
+
+This package has the following key differences:
+
+  - This is CGo binding, not pure Go
+  - It uses native/stdlib types, where appropriate. For example,
+    IP addresses returned as [netip.AddrPort]
+  - It uses a single channel for all events reported by an object,
+    so add/remove events cannot be reordered
+  - It survives Avahi restart
+  - Integer values, like various flags, DNS class and type and
+    so own, have their own type, not a generic int16/int32
+  - And the last but not least, it attempts to fill the gaps
+    in Avahi documentation, which is not very detailed
+
 # Key objects
 
 The key objects exposed by this package are:
