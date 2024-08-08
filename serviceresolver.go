@@ -64,8 +64,9 @@ type ServiceResolverEvent struct {
 // NewServiceResolver creates a new [ServiceResolver].
 //
 // ServiceResolver resolves hostname, IP address and TXT record of
-// the discovered services. Resolved information is reported via
-// channel returned by the [ServiceResolver.Chan].
+// the services, previously discovered by the [ServiceBrowser].
+// Resolved information is reported via channel returned by the
+// [ServiceResolver.Chan].
 //
 // If IP address and/or TXT record is not needed, resolving of these
 // parameters may be suppressed, using LookupNoAddress/LookupNoTXT
@@ -77,13 +78,10 @@ type ServiceResolverEvent struct {
 // to reserve the service name, but if LPD protocol is actually not
 // supported, it will be registered with zero port.
 //
-// This is important to understand the difference between transport
-// protocol and
-//
-// The IP4/IP6 protocol is specified twice. The "proto" parameter specifies
-// the transport protocol, used for queries. The "addrproto" parameter
-// specifies, which kind of addresses (A/AAAA records) we are interested
-// in.
+// This is important to understand the proper usage of the "proto"
+// and "addrproto" parameters and difference between them.  Please
+// read the "IP4 vs IP6" section of the package Overview for technical
+// details.
 //
 // Function parameters:
 //   - clnt is the pointer to [Client]
