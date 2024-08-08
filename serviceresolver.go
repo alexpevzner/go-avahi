@@ -64,7 +64,8 @@ type ServiceResolverEvent struct {
 // NewServiceResolver creates a new [ServiceResolver].
 //
 // ServiceResolver resolves hostname, IP address and TXT record of
-// the services, previously discovered by the [ServiceBrowser].
+// the services, previously discovered by the [ServiceBrowser] by
+// service instance name ([ServiceBrowserEvent.InstanceName]).
 // Resolved information is reported via channel returned by the
 // [ServiceResolver.Chan].
 //
@@ -89,7 +90,8 @@ type ServiceResolverEvent struct {
 //     to specify all interfaces.
 //   - proto is the IP4/IP6 protocol, used as transport for queries. If
 //     set to [ProtocolUnspec], both protocols will be used.
-//   - name is the service name, as reported by [ServiceBrowserEvent.Name]
+//   - instname is the service instance name, as reported by
+//     [ServiceBrowserEvent.InstanceName]
 //   - svctype is the service type we are looking for (e.g., "_http._tcp")
 //   - domain is domain where service is looked. If set to "", the
 //     default domain is used, which depends on a avahi-daemon configuration
@@ -104,7 +106,7 @@ func NewServiceResolver(
 	clnt *Client,
 	ifindex IfIndex,
 	proto Protocol,
-	name, svctype, domain string,
+	instname, svctype, domain string,
 	addrproto Protocol,
 	flags LookupFlags) (*ServiceResolver, error) {
 
@@ -114,8 +116,8 @@ func NewServiceResolver(
 	resolver.queue.init()
 
 	// Convert strings from Go to C
-	cname := C.CString(name)
-	defer C.free(unsafe.Pointer(cname))
+	cinstname := C.CString(instname)
+	defer C.free(unsafe.Pointer(cinstname))
 
 	csvctype := C.CString(svctype)
 	defer C.free(unsafe.Pointer(csvctype))
@@ -131,7 +133,7 @@ func NewServiceResolver(
 		avahiClient,
 		C.AvahiIfIndex(ifindex),
 		C.AvahiProtocol(proto),
-		cname, csvctype, cdomain,
+		cinstname, csvctype, cdomain,
 		C.AvahiProtocol(addrproto),
 		C.AvahiLookupFlags(flags),
 		C.AvahiServiceResolverCallback(C.serviceResolverCallback),
