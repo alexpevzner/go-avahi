@@ -45,12 +45,12 @@ const (
 
 // clientStateNames contains names for known client states.
 var clientStateNames = map[ClientState]string{
-	ClientStateClosed:      "AVAHI_CLIENT_CLOSED",
-	ClientStateRegistering: "AVAHI_CLIENT_S_REGISTERING",
-	ClientStateRunning:     "AVAHI_CLIENT_S_RUNNING",
-	ClientStateCollision:   "AVAHI_CLIENT_S_COLLISION",
-	ClientStateFailure:     "AVAHI_CLIENT_FAILURE",
-	ClientStateConnecting:  "AVAHI_CLIENT_CONNECTING",
+	ClientStateClosed:      "closed",
+	ClientStateRegistering: "registering",
+	ClientStateRunning:     "running",
+	ClientStateCollision:   "collision",
+	ClientStateFailure:     "failure",
+	ClientStateConnecting:  "connecting",
 }
 
 // String returns a name of the ClientState.
