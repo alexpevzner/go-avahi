@@ -152,7 +152,7 @@ func (resolver *ServiceResolver) Chan() <-chan *ServiceResolverEvent {
 	return resolver.queue.Chan()
 }
 
-// Get waits for the next [ServiceResolver].
+// Get waits for the next [ServiceResolverEvent].
 //
 // It returns:
 //   - event, nil - if event available

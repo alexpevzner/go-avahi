@@ -123,7 +123,7 @@ func (resolver *AddressResolver) Chan() <-chan *AddressResolverEvent {
 	return resolver.queue.Chan()
 }
 
-// Get waits for the next [AddressResolver].
+// Get waits for the next [AddressResolverEvent].
 //
 // It returns:
 //   - event, nil - if event available
@@ -152,7 +152,7 @@ func (resolver *AddressResolver) Close() {
 }
 
 // addressResolverCallback called by AvahiAddressResolver to
-// report discovered services
+// report resolved hostnames.
 //
 //export addressResolverCallback
 func addressResolverCallback(
