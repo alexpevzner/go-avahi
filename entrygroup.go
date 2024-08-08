@@ -110,13 +110,29 @@ func (egrp *EntryGroup) Close() {
 
 // Commit changes to the EntryGroup.
 func (egrp *EntryGroup) Commit() error {
-	return errors.New("not implemented")
+	egrp.clnt.begin()
+	defer egrp.clnt.end()
+
+	rc := C.avahi_entry_group_commit(egrp.avahiEntryGroup)
+	if rc >= 0 {
+		return ErrCode(rc)
+	}
+
+	return nil
 }
 
 // Reset (purge) the EntryGroup. This takes effect immediately
 // (without commit).
 func (egrp *EntryGroup) Reset() error {
-	return errors.New("not implemented")
+	egrp.clnt.begin()
+	defer egrp.clnt.end()
+
+	rc := C.avahi_entry_group_reset(egrp.avahiEntryGroup)
+	if rc >= 0 {
+		return ErrCode(rc)
+	}
+
+	return nil
 }
 
 // IsEmpty reports if EntryGroup is empty.
