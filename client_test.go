@@ -40,7 +40,7 @@ func TestClient(t *testing.T) {
 
 	for evnt := range browser.Chan() {
 		fmt.Printf("%#v\n", evnt)
-		if evnt.Event == BrowserCacheExhausted {
+		if evnt.Event == BrowserAllForNow {
 			break
 		}
 	}
