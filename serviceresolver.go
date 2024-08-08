@@ -58,7 +58,7 @@ type ServiceResolverEvent struct {
 	Domain   string            // Service domain
 	Hostname string            // Resolved hostname
 	Addr     netip.AddrPort    // Resolved IP address:port
-	Txt      []string          // TXT record (key=value...)
+	Txt      []string          // TXT record ("key=value"...)
 }
 
 // NewServiceResolver creates a new [ServiceResolver].
