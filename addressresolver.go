@@ -81,17 +81,8 @@ func NewAddressResolver(
 	resolver.queue.init()
 
 	// Convert address to AvahiAddress
-	var caddr C.AvahiAddress
-	addr = addr.Unmap()
-
-	switch {
-	case addr.Is4():
-		caddr.proto = C.AVAHI_PROTO_INET
-		(*(*[4]byte)(unsafe.Pointer(&caddr.data))) = addr.As4()
-	case addr.Is6():
-		caddr.proto = C.AVAHI_PROTO_INET6
-		(*(*[16]byte)(unsafe.Pointer(&caddr.data))) = addr.As16()
-	default:
+	caddr, err := makeAvahiAddress(addr)
+	if err != nil {
 		return nil, ErrInvalidAddress
 	}
 

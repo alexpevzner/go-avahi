@@ -163,15 +163,8 @@ func hostnameResolverCallback(
 
 	resolver := (*cgo.Handle)(p).Value().(*HostNameResolver)
 
-	// Decode IP address
-	var ip netip.Addr
-	if caddr.proto == C.AVAHI_PROTO_INET {
-		ip = netip.AddrFrom4(*(*[4]byte)(unsafe.Pointer(&caddr.data)))
-	} else {
-		ip = netip.AddrFrom16(*(*[16]byte)(unsafe.Pointer(&caddr.data)))
-	}
-
 	// Generate an event
+	ip := decodeAvahiAddress(caddr)
 	evnt := &HostNameResolverEvent{
 		Event:    ResolverEvent(event),
 		IfIndex:  IfIndex(ifindex),

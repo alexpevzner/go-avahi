@@ -14,3 +14,62 @@ package avahi
 //
 // #include <avahi-client/client.h>
 import "C"
+import (
+	"net/netip"
+	"unsafe"
+)
+
+// makeAvahiAddress makes C.AvahiAddress
+func makeAvahiAddress(addr netip.Addr) (C.AvahiAddress, error) {
+	var caddr C.AvahiAddress
+	addr = addr.Unmap()
+
+	switch {
+	case addr.Is4():
+		caddr.proto = C.AVAHI_PROTO_INET
+		(*(*[4]byte)(unsafe.Pointer(&caddr.data))) = addr.As4()
+	case addr.Is6():
+		caddr.proto = C.AVAHI_PROTO_INET6
+		(*(*[16]byte)(unsafe.Pointer(&caddr.data))) = addr.As16()
+	default:
+		return caddr, ErrInvalidAddress
+	}
+
+	return caddr, nil
+}
+
+// decodeAvahiAddress decodes C.AvahiAddress
+func decodeAvahiAddress(caddr *C.AvahiAddress) netip.Addr {
+	var ip netip.Addr
+
+	if caddr.proto == C.AVAHI_PROTO_INET {
+		ip = netip.AddrFrom4(*(*[4]byte)(unsafe.Pointer(&caddr.data)))
+	} else {
+		ip = netip.AddrFrom16(*(*[16]byte)(unsafe.Pointer(&caddr.data)))
+	}
+
+	return ip
+}
+
+// makeAvahiStringList makes C.AvahiStringList
+func makeAvahiStringList(txt []string) (*C.AvahiStringList, error) {
+	var ctxt *C.AvahiStringList
+
+	for i := len(txt) - 1; i > 0; i-- {
+		b := []byte(txt[i])
+
+		prev := ctxt
+		ctxt = C.avahi_string_list_add_arbitrary(
+			ctxt,
+			(*C.uint8_t)(unsafe.Pointer(&b[0])),
+			C.size_t(len(b)),
+		)
+
+		if ctxt == nil {
+			C.avahi_string_list_free(prev)
+			return nil, ErrNoMemory
+		}
+	}
+
+	return ctxt, nil
+}

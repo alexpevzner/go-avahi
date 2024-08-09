@@ -198,26 +198,11 @@ func (egrp *EntryGroup) AddService(
 	}
 
 	// Convert TXT from Go to C
-	var ctxt *C.AvahiStringList
-	defer C.avahi_string_list_free(ctxt)
-
-	for _, t := range svc.Txt {
-		b := []byte(t)
-
-		prev := ctxt
-		ctxt = C.avahi_string_list_add_arbitrary(
-			ctxt,
-			(*C.uint8_t)(unsafe.Pointer(&b[0])),
-			C.size_t(len(b)),
-		)
-
-		if ctxt == nil {
-			C.avahi_string_list_free(prev)
-			return ErrNoMemory
-		}
+	ctxt, err := makeAvahiStringList(svc.Txt)
+	if err != nil {
+		return err
 	}
-
-	ctxt = C.avahi_string_list_reverse(ctxt)
+	defer C.avahi_string_list_free(ctxt)
 
 	// Call Avahi
 	egrp.clnt.begin()

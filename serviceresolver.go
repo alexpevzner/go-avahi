@@ -201,12 +201,7 @@ func serviceResolverCallback(
 	resolver := (*cgo.Handle)(p).Value().(*ServiceResolver)
 
 	// Decode IP address:port
-	var ip netip.Addr
-	if caddr.proto == C.AVAHI_PROTO_INET {
-		ip = netip.AddrFrom4(*(*[4]byte)(unsafe.Pointer(&caddr.data)))
-	} else {
-		ip = netip.AddrFrom16(*(*[16]byte)(unsafe.Pointer(&caddr.data)))
-	}
+	ip := decodeAvahiAddress(caddr)
 	addr := netip.AddrPortFrom(ip, uint16(cport))
 
 	// Decode TXT record
