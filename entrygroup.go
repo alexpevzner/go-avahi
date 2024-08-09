@@ -12,10 +12,11 @@ package avahi
 
 import (
 	"context"
-	"errors"
+	"math"
 	"net/netip"
 	"runtime/cgo"
 	"sync/atomic"
+	"time"
 	"unsafe"
 )
 
@@ -72,11 +73,11 @@ type EntryGroupService struct {
 // EntryGroupRecord represents a raw DNS record that can be added
 // to the EntryGroup.
 type EntryGroupRecord struct {
-	Name  string   // Record name
-	Class DNSClass // Record DNS class
-	Type  DNSType  // Record DNS type
-	TTL   int      // DNS TTL, in seconds
-	Data  []byte   // Record data
+	Name  string        // Record name
+	Class DNSClass      // Record DNS class
+	Type  DNSType       // Record DNS type
+	TTL   time.Duration // DNS TTL, rounded to seconds and must fit int32
+	Data  []byte        // Record data
 }
 
 // NewEntryGroup creates a new [EntryGroup].
@@ -362,8 +363,49 @@ func (egrp *EntryGroup) AddAddress(
 }
 
 // AddRecord adds a raw DNS record
-func (egrp *EntryGroup) AddRecord(rec *EntryGroupRecord) error {
-	return errors.New("not implemented")
+func (egrp *EntryGroup) AddRecord(
+	ifindex IfIndex,
+	proto Protocol,
+	flags PublishFlags,
+	rec *EntryGroupRecord) error {
+	// Convert TTL from Go to C
+	if rec.TTL < 0 || rec.TTL > time.Second*math.MaxInt32 {
+		return ErrInvalidTTL
+	}
+
+	cttl := C.uint32_t((rec.TTL + time.Second/2) / time.Second)
+
+	// Convert strings from Go to C
+	cname := C.CString(rec.Name)
+	defer C.free(unsafe.Pointer(cname))
+
+	// Convert record data from Go to C
+	csize := C.size_t(len(rec.Data))
+	cdata := C.CBytes(rec.Data)
+	defer C.free(cdata)
+
+	// Call Avahi
+	egrp.clnt.begin()
+	defer egrp.clnt.end()
+
+	rc := C.avahi_entry_group_add_record(
+		egrp.avahiEntryGroup,
+		C.AvahiIfIndex(ifindex),
+		C.AvahiProtocol(proto),
+		C.AvahiPublishFlags(flags),
+		cname,
+		C.uint16_t(rec.Class),
+		C.uint16_t(rec.Type),
+		cttl,
+		cdata,
+		csize,
+	)
+
+	if rc < 0 {
+		return ErrCode(rc)
+	}
+
+	return nil
 }
 
 // entryGroupCallback called by AvahiClient to report client state change
