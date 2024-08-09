@@ -162,7 +162,7 @@ func (egrp *EntryGroup) Commit() error {
 	defer egrp.clnt.end()
 
 	rc := C.avahi_entry_group_commit(egrp.avahiEntryGroup)
-	if rc >= 0 {
+	if rc < 0 {
 		return ErrCode(rc)
 	}
 
@@ -176,7 +176,7 @@ func (egrp *EntryGroup) Reset() error {
 	defer egrp.clnt.end()
 
 	rc := C.avahi_entry_group_reset(egrp.avahiEntryGroup)
-	if rc >= 0 {
+	if rc < 0 {
 		return ErrCode(rc)
 	}
 
