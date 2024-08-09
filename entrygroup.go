@@ -50,15 +50,24 @@ type EntryGroupEvent struct {
 // EntryGroupServiceIdent contains common set of parameters
 // that identify a service in EntryGroup.
 //
+// Please notice, services are identified by the DNS record name, which
+// is EntryGroupServiceIdent.InstanceName, but all other parameters
+// must match. In another words, you can't have two distinct entries
+// in the EntryGroup with the same InstanceName and difference in other
+// parameters (in particular, you can't define per-interface or
+// per-protocol distinct entries).
+//
 // It is used as a part of [EntryGroupService] for service
 // registration and also as an standalone parameter that identifies
 // a service for modification of existent services entries with
 // [EntryGroup.AddServiceSubtype] and [EntryGroup.UpdateServiceTxt]
 // functions.
 type EntryGroupServiceIdent struct {
-	InstanceName string // Service instance name
-	Type         string // Service type
-	Domain       string // Service domain (use "" for default)
+	IfIndex      IfIndex  // Network interface index
+	Protocol     Protocol // Publishing network protocol
+	InstanceName string   // Service instance name
+	Type         string   // Service type
+	Domain       string   // Service domain (use "" for default)
 }
 
 // EntryGroupService represents a service registration.
@@ -69,14 +78,24 @@ type EntryGroupService struct {
 	Txt                    []string // TXT record ("key=value"...)
 }
 
+// EntryGroupAddress represents a host address registration.
+type EntryGroupAddress struct {
+	IfIndex  IfIndex    // Network interface index
+	Protocol Protocol   // Publishing network protocol
+	Hostname string     // Host name (use "" for default)
+	Addr     netip.Addr // IP address
+}
+
 // EntryGroupRecord represents a raw DNS record that can be added
 // to the EntryGroup.
 type EntryGroupRecord struct {
-	Name  string        // Record name
-	Class DNSClass      // Record DNS class
-	Type  DNSType       // Record DNS type
-	TTL   time.Duration // DNS TTL, rounded to seconds and must fit int32
-	Data  []byte        // Record data
+	IfIndex  IfIndex       // Network interface index
+	Protocol Protocol      // Publishing network protocol
+	Name     string        // Record name
+	Class    DNSClass      // Record DNS class
+	Type     DNSType       // Record DNS type
+	TTL      time.Duration // DNS TTL, rounded to seconds and must fit int32
+	Data     []byte        // Record data
 }
 
 // NewEntryGroup creates a new [EntryGroup].
@@ -173,10 +192,8 @@ func (egrp *EntryGroup) IsEmpty() bool {
 
 // AddService adds a service registration
 func (egrp *EntryGroup) AddService(
-	ifindex IfIndex,
-	proto Protocol,
-	flags PublishFlags,
-	svc *EntryGroupService) error {
+	svc *EntryGroupService,
+	flags PublishFlags) error {
 
 	// Convert strings from Go to C
 	cinstancename := C.CString(svc.InstanceName)
@@ -210,8 +227,8 @@ func (egrp *EntryGroup) AddService(
 
 	rc := C.avahi_entry_group_add_service_strlst(
 		egrp.avahiEntryGroup,
-		C.AvahiIfIndex(ifindex),
-		C.AvahiProtocol(proto),
+		C.AvahiIfIndex(svc.IfIndex),
+		C.AvahiProtocol(svc.Protocol),
 		C.AvahiPublishFlags(flags),
 		cinstancename,
 		ctype,
@@ -232,11 +249,9 @@ func (egrp *EntryGroup) AddService(
 
 // AddServiceSubtype adds subtype for the existent service.
 func (egrp *EntryGroup) AddServiceSubtype(
-	ifindex IfIndex,
-	proto Protocol,
-	flags PublishFlags,
 	svcid *EntryGroupServiceIdent,
-	subtype string) error {
+	subtype string,
+	flags PublishFlags) error {
 
 	// Convert strings from Go to C
 	cinstancename := C.CString(svcid.InstanceName)
@@ -260,8 +275,8 @@ func (egrp *EntryGroup) AddServiceSubtype(
 
 	rc := C.avahi_entry_group_add_service_subtype(
 		egrp.avahiEntryGroup,
-		C.AvahiIfIndex(ifindex),
-		C.AvahiProtocol(proto),
+		C.AvahiIfIndex(svcid.IfIndex),
+		C.AvahiProtocol(svcid.Protocol),
 		C.AvahiPublishFlags(flags),
 		cinstancename,
 		ctype,
@@ -280,11 +295,9 @@ func (egrp *EntryGroup) AddServiceSubtype(
 
 // UpdateServiceTxt updates TXT record for the existent service.
 func (egrp *EntryGroup) UpdateServiceTxt(
-	ifindex IfIndex,
-	proto Protocol,
-	flags PublishFlags,
 	svcid *EntryGroupServiceIdent,
-	txt []string) error {
+	txt []string,
+	flags PublishFlags) error {
 
 	// Convert strings from Go to C
 	cinstancename := C.CString(svcid.InstanceName)
@@ -312,8 +325,8 @@ func (egrp *EntryGroup) UpdateServiceTxt(
 
 	rc := C.avahi_entry_group_update_service_txt_strlst(
 		egrp.avahiEntryGroup,
-		C.AvahiIfIndex(ifindex),
-		C.AvahiProtocol(proto),
+		C.AvahiIfIndex(svcid.IfIndex),
+		C.AvahiProtocol(svcid.Protocol),
 		C.AvahiPublishFlags(flags),
 		cinstancename,
 		ctype,
@@ -332,19 +345,17 @@ func (egrp *EntryGroup) UpdateServiceTxt(
 
 // AddAddress adds host/address pair.
 func (egrp *EntryGroup) AddAddress(
-	ifindex IfIndex,
-	proto Protocol,
-	flags PublishFlags,
-	hostname string, addr netip.Addr) error {
+	rec *EntryGroupAddress,
+	flags PublishFlags) error {
 
 	// Convert address from Go to C
-	caddr, err := makeAvahiAddress(addr)
+	caddr, err := makeAvahiAddress(rec.Addr)
 	if err != nil {
 		return err
 	}
 
 	// Convert strings from Go to C
-	chostname := C.CString(hostname)
+	chostname := C.CString(rec.Hostname)
 	defer C.free(unsafe.Pointer(chostname))
 
 	// Call Avahi
@@ -353,8 +364,8 @@ func (egrp *EntryGroup) AddAddress(
 
 	rc := C.avahi_entry_group_add_address(
 		egrp.avahiEntryGroup,
-		C.AvahiIfIndex(ifindex),
-		C.AvahiProtocol(proto),
+		C.AvahiIfIndex(rec.IfIndex),
+		C.AvahiProtocol(rec.Protocol),
 		C.AvahiPublishFlags(flags),
 		chostname,
 		&caddr,
@@ -371,10 +382,8 @@ func (egrp *EntryGroup) AddAddress(
 
 // AddRecord adds a raw DNS record
 func (egrp *EntryGroup) AddRecord(
-	ifindex IfIndex,
-	proto Protocol,
-	flags PublishFlags,
-	rec *EntryGroupRecord) error {
+	rec *EntryGroupRecord,
+	flags PublishFlags) error {
 
 	// Convert TTL from Go to C
 	if rec.TTL < 0 || rec.TTL > time.Second*math.MaxInt32 {
@@ -398,8 +407,8 @@ func (egrp *EntryGroup) AddRecord(
 
 	rc := C.avahi_entry_group_add_record(
 		egrp.avahiEntryGroup,
-		C.AvahiIfIndex(ifindex),
-		C.AvahiProtocol(proto),
+		C.AvahiIfIndex(rec.IfIndex),
+		C.AvahiProtocol(rec.Protocol),
 		C.AvahiPublishFlags(flags),
 		cname,
 		C.uint16_t(rec.Class),
