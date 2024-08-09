@@ -63,11 +63,11 @@ type EntryGroupServiceIdent struct {
 
 // EntryGroupService represents a service registration.
 type EntryGroupService struct {
-	EntryGroupServiceIdent              // Service identification
-	Hostname               string       // Host name (use "" for default)
-	Port                   int          // IP port
-	Txt                    []string     // TXT record ("key=value"...)
-	Flags                  PublishFlags // Publishing flags
+	EntryGroupServiceIdent          // Service identification
+	Hostname               string   // Host name (use "" for default)
+	Port                   int      // IP port
+	Txt                    []string // TXT record ("key=value"...)
+	//Flags                  PublishFlags // Publishing flags
 }
 
 // EntryGroupRecord represents a raw DNS record that can be added
