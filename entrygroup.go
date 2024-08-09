@@ -368,6 +368,7 @@ func (egrp *EntryGroup) AddRecord(
 	proto Protocol,
 	flags PublishFlags,
 	rec *EntryGroupRecord) error {
+
 	// Convert TTL from Go to C
 	if rec.TTL < 0 || rec.TTL > time.Second*math.MaxInt32 {
 		return ErrInvalidTTL
