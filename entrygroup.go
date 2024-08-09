@@ -67,7 +67,6 @@ type EntryGroupService struct {
 	Hostname               string   // Host name (use "" for default)
 	Port                   int      // IP port
 	Txt                    []string // TXT record ("key=value"...)
-	//Flags                  PublishFlags // Publishing flags
 }
 
 // EntryGroupRecord represents a raw DNS record that can be added
@@ -226,6 +225,8 @@ func (egrp *EntryGroup) AddService(
 		return ErrCode(rc)
 	}
 
+	egrp.empty.Store(false)
+
 	return nil
 }
 
@@ -271,6 +272,8 @@ func (egrp *EntryGroup) AddServiceSubtype(
 	if rc < 0 {
 		return ErrCode(rc)
 	}
+
+	egrp.empty.Store(false)
 
 	return nil
 }
@@ -322,6 +325,8 @@ func (egrp *EntryGroup) UpdateServiceTxt(
 		return ErrCode(rc)
 	}
 
+	egrp.empty.Store(false)
+
 	return nil
 }
 
@@ -358,6 +363,8 @@ func (egrp *EntryGroup) AddAddress(
 	if rc < 0 {
 		return ErrCode(rc)
 	}
+
+	egrp.empty.Store(false)
 
 	return nil
 }
@@ -405,6 +412,8 @@ func (egrp *EntryGroup) AddRecord(
 	if rc < 0 {
 		return ErrCode(rc)
 	}
+
+	egrp.empty.Store(false)
 
 	return nil
 }
