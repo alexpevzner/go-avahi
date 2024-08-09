@@ -325,8 +325,40 @@ func (egrp *EntryGroup) UpdateServiceTxt(
 }
 
 // AddAddress adds host/address pair.
-func (egrp *EntryGroup) AddAddress(hostname string, addr netip.Addr) error {
-	return errors.New("not implemented")
+func (egrp *EntryGroup) AddAddress(
+	ifindex IfIndex,
+	proto Protocol,
+	flags PublishFlags,
+	hostname string, addr netip.Addr) error {
+
+	// Convert address from Go to C
+	caddr, err := makeAvahiAddress(addr)
+	if err != nil {
+		return err
+	}
+
+	// Convert strings from Go to C
+	chostname := C.CString(hostname)
+	defer C.free(unsafe.Pointer(chostname))
+
+	// Call Avahi
+	egrp.clnt.begin()
+	defer egrp.clnt.end()
+
+	rc := C.avahi_entry_group_add_address(
+		egrp.avahiEntryGroup,
+		C.AvahiIfIndex(ifindex),
+		C.AvahiProtocol(proto),
+		C.AvahiPublishFlags(flags),
+		chostname,
+		&caddr,
+	)
+
+	if rc < 0 {
+		return ErrCode(rc)
+	}
+
+	return nil
 }
 
 // AddRecord adds a raw DNS record
