@@ -10,9 +10,10 @@
 
 package avahi
 
+import "fmt"
+
 // #include <avahi-client/client.h>
 import "C"
-import "fmt"
 
 // ClientState represents a [Client] state.
 type ClientState int
