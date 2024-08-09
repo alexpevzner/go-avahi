@@ -18,7 +18,7 @@ type Protocol int
 
 // Protocol values:
 const (
-	ProtocolIP4    = Protocol(C.AVAHI_PROTO_INET)
-	ProtocolIP6    = Protocol(C.AVAHI_PROTO_INET6)
-	ProtocolUnspec = Protocol(C.AVAHI_PROTO_UNSPEC)
+	ProtocolIP4    Protocol = C.AVAHI_PROTO_INET
+	ProtocolIP6    Protocol = C.AVAHI_PROTO_INET6
+	ProtocolUnspec Protocol = C.AVAHI_PROTO_UNSPEC
 )

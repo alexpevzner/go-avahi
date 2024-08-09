@@ -18,5 +18,5 @@ type IfIndex int
 
 // IfIndex values:
 const (
-	IfIndexUnspec = IfIndex(C.AVAHI_PROTO_UNSPEC)
+	IfIndexUnspec IfIndex = C.AVAHI_PROTO_UNSPEC
 )
