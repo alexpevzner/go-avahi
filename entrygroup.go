@@ -229,15 +229,99 @@ func (egrp *EntryGroup) AddService(
 }
 
 // AddServiceSubtype adds subtype for the existent service.
-func (egrp *EntryGroup) AddServiceSubtype(svcid *EntryGroupServiceIdent,
+func (egrp *EntryGroup) AddServiceSubtype(
+	ifindex IfIndex,
+	proto Protocol,
+	flags PublishFlags,
+	svcid *EntryGroupServiceIdent,
 	subtype string) error {
-	return errors.New("not implemented")
+
+	// Convert strings from Go to C
+	cinstancename := C.CString(svcid.InstanceName)
+	defer C.free(unsafe.Pointer(cinstancename))
+
+	ctype := C.CString(svcid.Type)
+	defer C.free(unsafe.Pointer(ctype))
+
+	var cdomain *C.char
+	if svcid.Domain != "" {
+		cdomain = C.CString(svcid.Domain)
+		defer C.free(unsafe.Pointer(cdomain))
+	}
+
+	csubtype := C.CString(subtype)
+	defer C.free(unsafe.Pointer(csubtype))
+
+	// Call Avahi
+	egrp.clnt.begin()
+	defer egrp.clnt.end()
+
+	rc := C.avahi_entry_group_add_service_subtype(
+		egrp.avahiEntryGroup,
+		C.AvahiIfIndex(ifindex),
+		C.AvahiProtocol(proto),
+		C.AvahiPublishFlags(flags),
+		cinstancename,
+		ctype,
+		cdomain,
+		csubtype,
+	)
+
+	if rc < 0 {
+		return ErrCode(rc)
+	}
+
+	return nil
 }
 
 // UpdateServiceTxt updates TXT record for the existent service.
-func (egrp *EntryGroup) UpdateServiceTxt(svcid *EntryGroupServiceIdent,
+func (egrp *EntryGroup) UpdateServiceTxt(
+	ifindex IfIndex,
+	proto Protocol,
+	flags PublishFlags,
+	svcid *EntryGroupServiceIdent,
 	txt []string) error {
-	return errors.New("not implemented")
+
+	// Convert strings from Go to C
+	cinstancename := C.CString(svcid.InstanceName)
+	defer C.free(unsafe.Pointer(cinstancename))
+
+	ctype := C.CString(svcid.Type)
+	defer C.free(unsafe.Pointer(ctype))
+
+	var cdomain *C.char
+	if svcid.Domain != "" {
+		cdomain = C.CString(svcid.Domain)
+		defer C.free(unsafe.Pointer(cdomain))
+	}
+
+	// Convert TXT from Go to C
+	ctxt, err := makeAvahiStringList(txt)
+	if err != nil {
+		return err
+	}
+	defer C.avahi_string_list_free(ctxt)
+
+	// Call Avahi
+	egrp.clnt.begin()
+	defer egrp.clnt.end()
+
+	rc := C.avahi_entry_group_update_service_txt_strlst(
+		egrp.avahiEntryGroup,
+		C.AvahiIfIndex(ifindex),
+		C.AvahiProtocol(proto),
+		C.AvahiPublishFlags(flags),
+		cinstancename,
+		ctype,
+		cdomain,
+		ctxt,
+	)
+
+	if rc < 0 {
+		return ErrCode(rc)
+	}
+
+	return nil
 }
 
 // AddAddress adds host/address pair.
