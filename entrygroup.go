@@ -16,12 +16,16 @@ import (
 	"net/netip"
 	"runtime/cgo"
 	"sync/atomic"
+	"unsafe"
 )
 
 // #include <avahi-client/client.h>
 // #include <avahi-client/publish.h>
 //
-// void clientCallback (AvahiClient*, AvahiClientState, void*);
+// void entryGroupCallback (
+//	AvahiEntryGroup *g,
+//	AvahiClientState s,
+//	void *userdata);
 import "C"
 
 // EntryGroup represents a group of RR records published via avahi-daemon.
@@ -76,7 +80,29 @@ type EntryGroupRecord struct {
 
 // NewEntryGroup creates a new [EntryGroup].
 func NewEntryGroup(clnt *Client) (*EntryGroup, error) {
-	return nil, errors.New("not implemented")
+	// Initialize EntryGroup structure
+	egrp := &EntryGroup{clnt: clnt}
+	egrp.handle = cgo.NewHandle(egrp)
+	egrp.queue.init()
+	egrp.empty.Store(true)
+
+	// Create AvahiEntryGroup
+	avahiClient := clnt.begin()
+	defer clnt.end()
+
+	egrp.avahiEntryGroup = C.avahi_entry_group_new(
+		avahiClient,
+		C.AvahiEntryGroupCallback(C.entryGroupCallback),
+		unsafe.Pointer(&egrp.handle),
+	)
+
+	if egrp.avahiEntryGroup == nil {
+		egrp.queue.Close()
+		egrp.handle.Delete()
+		return nil, clnt.errno()
+	}
+
+	return egrp, nil
 }
 
 // Chan returns channel where [EntryGroupEvent]s are sent.
@@ -169,4 +195,25 @@ func (egrp *EntryGroup) AddAddress(hostname string, addr netip.Addr) error {
 // AddRecord adds a raw DNS record
 func (egrp *EntryGroup) AddRecord(rec *EntryGroupRecord) error {
 	return errors.New("not implemented")
+}
+
+// entryGroupCallback called by AvahiClient to report client state change
+//
+//export entryGroupCallback
+func entryGroupCallback(
+	g *C.AvahiEntryGroup,
+	s C.AvahiClientState,
+	p unsafe.Pointer) {
+
+	clntHandle := *(*cgo.Handle)(p)
+	egrp := clntHandle.Value().(*EntryGroup)
+
+	state := EntryGroupState(s)
+	evnt := &EntryGroupEvent{State: state}
+
+	if state == EntryGroupStateFailure {
+		evnt.Err = egrp.clnt.errno()
+	}
+
+	egrp.queue.Push(evnt)
 }
