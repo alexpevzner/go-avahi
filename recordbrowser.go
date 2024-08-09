@@ -174,12 +174,15 @@ func recordBrowserCallback(
 		Event:    BrowserEvent(event),
 		IfIndex:  IfIndex(ifindex),
 		Protocol: Protocol(proto),
-		Err:      browser.clnt.errno(),
 		Flags:    LookupResultFlags(flags),
 		Name:     C.GoString(name),
 		Class:    DNSClass(dnsclass),
 		Type:     DNSType(dnstype),
 		Data:     C.GoBytes(rdata, C.int(rsize)),
+	}
+
+	if evnt.Event == BrowserFailure {
+		evnt.Err = browser.clnt.errno()
 	}
 
 	browser.queue.Push(evnt)

@@ -169,9 +169,12 @@ func hostnameResolverCallback(
 		Event:    ResolverEvent(event),
 		IfIndex:  IfIndex(ifindex),
 		Protocol: Protocol(proto),
-		Err:      resolver.clnt.errno(),
 		Flags:    LookupResultFlags(flags),
 		Addr:     ip,
+	}
+
+	if evnt.Event == ResolverFailure {
+		evnt.Err = resolver.clnt.errno()
 	}
 
 	resolver.queue.Push(evnt)

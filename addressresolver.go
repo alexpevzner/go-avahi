@@ -163,9 +163,12 @@ func addressResolverCallback(
 		Event:    ResolverEvent(event),
 		IfIndex:  IfIndex(ifindex),
 		Protocol: Protocol(proto),
-		Err:      resolver.clnt.errno(),
 		Flags:    LookupResultFlags(flags),
 		Hostname: C.GoString(hostname),
+	}
+
+	if evnt.Event == ResolverFailure {
+		evnt.Err = resolver.clnt.errno()
 	}
 
 	resolver.queue.Push(evnt)

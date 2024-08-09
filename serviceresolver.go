@@ -219,7 +219,6 @@ func serviceResolverCallback(
 		Event:    ResolverEvent(event),
 		IfIndex:  IfIndex(ifindex),
 		Protocol: Protocol(proto),
-		Err:      resolver.clnt.errno(),
 		Flags:    LookupResultFlags(flags),
 		Name:     C.GoString(name),
 		Type:     C.GoString(svctype),
@@ -227,6 +226,10 @@ func serviceResolverCallback(
 		Hostname: C.GoString(hostname),
 		Addr:     addr,
 		Txt:      txt,
+	}
+
+	if evnt.Event == ResolverFailure {
+		evnt.Err = resolver.clnt.errno()
 	}
 
 	resolver.queue.Push(evnt)

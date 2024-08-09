@@ -174,10 +174,13 @@ func serviceTypeBrowserCallback(
 		Event:    BrowserEvent(event),
 		IfIndex:  IfIndex(ifindex),
 		Protocol: Protocol(proto),
-		Err:      browser.clnt.errno(),
 		Flags:    LookupResultFlags(flags),
 		Type:     C.GoString(svctype),
 		Domain:   C.GoString(domain),
+	}
+
+	if evnt.Event == BrowserFailure {
+		evnt.Err = browser.clnt.errno()
 	}
 
 	browser.queue.Push(evnt)
