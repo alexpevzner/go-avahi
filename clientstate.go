@@ -20,10 +20,6 @@ type ClientState int
 
 // ClientState values:
 const (
-	// Invalid (zero) state. This state is reported when
-	// [Client] is closed with the [Client.Close] call.
-	ClientStateClosed ClientState = 0
-
 	// Avahi server is being registering host RRs on a network
 	ClientStateRegistering ClientState = C.AVAHI_CLIENT_S_REGISTERING
 
@@ -46,7 +42,6 @@ const (
 
 // clientStateNames contains names for known client states.
 var clientStateNames = map[ClientState]string{
-	ClientStateClosed:      "closed",
 	ClientStateRegistering: "registering",
 	ClientStateRunning:     "running",
 	ClientStateCollision:   "collision",

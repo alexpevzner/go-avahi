@@ -28,7 +28,7 @@ func TestClient(t *testing.T) {
 	fmt.Printf("Host FQDN:     %q\n", clnt.GetHostFQDN())
 
 	state := <-clnt.Chan()
-	println(state.String())
+	fmt.Printf("%#v\n", state)
 
 	browser, err := NewServiceBrowser(clnt,
 		IfIndexUnspec, ProtocolUnspec,
