@@ -205,14 +205,7 @@ func serviceResolverCallback(
 	addr := netip.AddrPortFrom(ip, uint16(cport))
 
 	// Decode TXT record
-	var txt []string
-	for ctxt != nil {
-		t := C.GoStringN((*C.char)(unsafe.Pointer(&ctxt.text)),
-			C.int(ctxt.size))
-		txt = append(txt, t)
-
-		ctxt = ctxt.next
-	}
+	txt := decodeAvahiStringList(ctxt)
 
 	// Generate an event
 	evnt := &ServiceResolverEvent{

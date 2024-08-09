@@ -73,3 +73,18 @@ func makeAvahiStringList(txt []string) (*C.AvahiStringList, error) {
 
 	return ctxt, nil
 }
+
+// decodeAvahiStringList decodes C.AvahiStringList
+func decodeAvahiStringList(ctxt *C.AvahiStringList) []string {
+	var txt []string
+
+	for ctxt != nil {
+		t := C.GoStringN((*C.char)(unsafe.Pointer(&ctxt.text)),
+			C.int(ctxt.size))
+		txt = append(txt, t)
+
+		ctxt = ctxt.next
+	}
+
+	return txt
+}
