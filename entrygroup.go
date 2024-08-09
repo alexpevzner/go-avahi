@@ -19,6 +19,7 @@ import (
 	"unsafe"
 )
 
+// #include <stdlib.h>
 // #include <avahi-client/client.h>
 // #include <avahi-client/publish.h>
 //
@@ -171,8 +172,75 @@ func (egrp *EntryGroup) IsEmpty() bool {
 }
 
 // AddService adds a service registration
-func (egrp *EntryGroup) AddService(svc *EntryGroupService) error {
-	return errors.New("not implemented")
+func (egrp *EntryGroup) AddService(
+	ifindex IfIndex,
+	proto Protocol,
+	flags PublishFlags,
+	svc *EntryGroupService) error {
+
+	// Convert strings from Go to C
+	cinstancename := C.CString(svc.InstanceName)
+	defer C.free(unsafe.Pointer(cinstancename))
+
+	ctype := C.CString(svc.Type)
+	defer C.free(unsafe.Pointer(ctype))
+
+	var cdomain *C.char
+	if svc.Domain != "" {
+		cdomain = C.CString(svc.Domain)
+		defer C.free(unsafe.Pointer(cdomain))
+	}
+
+	var chostname *C.char
+	if svc.Hostname != "" {
+		chostname = C.CString(svc.Hostname)
+		defer C.free(unsafe.Pointer(chostname))
+	}
+
+	// Convert TXT from Go to C
+	var ctxt *C.AvahiStringList
+	defer C.avahi_string_list_free(ctxt)
+
+	for _, t := range svc.Txt {
+		b := []byte(t)
+
+		prev := ctxt
+		ctxt = C.avahi_string_list_add_arbitrary(
+			ctxt,
+			(*C.uint8_t)(unsafe.Pointer(&b[0])),
+			C.size_t(len(b)),
+		)
+
+		if ctxt == nil {
+			C.avahi_string_list_free(prev)
+			return ErrNoMemory
+		}
+	}
+
+	ctxt = C.avahi_string_list_reverse(ctxt)
+
+	// Call Avahi
+	egrp.clnt.begin()
+	defer egrp.clnt.end()
+
+	rc := C.avahi_entry_group_add_service_strlst(
+		egrp.avahiEntryGroup,
+		C.AvahiIfIndex(ifindex),
+		C.AvahiProtocol(proto),
+		C.AvahiPublishFlags(flags),
+		cinstancename,
+		ctype,
+		cdomain,
+		chostname,
+		C.uint16_t(svc.Port),
+		ctxt,
+	)
+
+	if rc < 0 {
+		return ErrCode(rc)
+	}
+
+	return nil
 }
 
 // AddServiceSubtype adds subtype for the existent service.
