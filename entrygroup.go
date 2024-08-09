@@ -39,6 +39,7 @@ type EntryGroup struct {
 	avahiEntryGroup *C.AvahiEntryGroup           // Avahi object
 	queue           eventqueue[*EntryGroupEvent] // Event queue
 	empty           atomic.Bool                  // The group is empty
+	closed          atomic.Bool                  // EventGroup is closed
 }
 
 // EntryGroupEvent represents an [EntryGroup] state change event.
@@ -146,14 +147,18 @@ func (egrp *EntryGroup) Get(ctx context.Context) (*EntryGroupEvent, error) {
 }
 
 // Close closed the [EntryGroup].
+//
+// Note, double close is safe
 func (egrp *EntryGroup) Close() {
-	egrp.clnt.begin()
-	C.avahi_entry_group_free(egrp.avahiEntryGroup)
-	egrp.avahiEntryGroup = nil
-	egrp.clnt.end()
+	if !egrp.closed.Swap(true) {
+		egrp.clnt.begin()
+		C.avahi_entry_group_free(egrp.avahiEntryGroup)
+		egrp.avahiEntryGroup = nil
+		egrp.clnt.end()
 
-	egrp.queue.Close()
-	egrp.handle.Delete()
+		egrp.queue.Close()
+		egrp.handle.Delete()
+	}
 }
 
 // Commit changes to the EntryGroup.

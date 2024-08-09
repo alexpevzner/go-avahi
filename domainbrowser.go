@@ -13,6 +13,7 @@ package avahi
 import (
 	"context"
 	"runtime/cgo"
+	"sync/atomic"
 	"unsafe"
 )
 
@@ -40,6 +41,7 @@ type DomainBrowser struct {
 	handle       cgo.Handle                      // Handle to self
 	avahiBrowser *C.AvahiDomainBrowser           // Underlying object
 	queue        eventqueue[*DomainBrowserEvent] // Event queue
+	closed       atomic.Bool                     // Browser is closed
 }
 
 // DomainBrowserType specifies a type of domain to browse for.
@@ -188,14 +190,18 @@ func (browser *DomainBrowser) Get(ctx context.Context) (*DomainBrowserEvent,
 
 // Close closes the [DomainBrowser] and releases allocated resources.
 // It closes the event channel, effectively unblocking pending readers.
+//
+// Note, double close is safe.
 func (browser *DomainBrowser) Close() {
-	browser.clnt.begin()
-	C.avahi_domain_browser_free(browser.avahiBrowser)
-	browser.avahiBrowser = nil
-	browser.clnt.end()
+	if !browser.closed.Swap(true) {
+		browser.clnt.begin()
+		C.avahi_domain_browser_free(browser.avahiBrowser)
+		browser.avahiBrowser = nil
+		browser.clnt.end()
 
-	browser.queue.Close()
-	browser.handle.Delete()
+		browser.queue.Close()
+		browser.handle.Delete()
+	}
 }
 
 // domainBrowserCallback called by AvahiDomainBrowser to
