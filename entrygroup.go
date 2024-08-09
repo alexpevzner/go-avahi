@@ -15,6 +15,7 @@ import (
 	"errors"
 	"net/netip"
 	"runtime/cgo"
+	"sync/atomic"
 )
 
 // #include <avahi-client/client.h>
@@ -31,6 +32,7 @@ type EntryGroup struct {
 	handle          cgo.Handle                   // Handle to self
 	avahiEntryGroup *C.AvahiEntryGroup           // Avahi object
 	queue           eventqueue[*EntryGroupEvent] // Event queue
+	empty           atomic.Bool                  // The group is empty
 }
 
 // EntryGroupEvent represents an [EntryGroup] state change event.
@@ -132,12 +134,14 @@ func (egrp *EntryGroup) Reset() error {
 		return ErrCode(rc)
 	}
 
+	egrp.empty.Store(true)
+
 	return nil
 }
 
 // IsEmpty reports if EntryGroup is empty.
 func (egrp *EntryGroup) IsEmpty() bool {
-	return false
+	return egrp.empty.Load()
 }
 
 // AddService adds a service registration
