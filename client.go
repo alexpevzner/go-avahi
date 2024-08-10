@@ -39,6 +39,7 @@ type Client struct {
 	avahiClient  *C.AvahiClient           // Underlying AvahiClient
 	threadedPoll *C.AvahiThreadedPoll     // Avahi event loop
 	queue        eventqueue[*ClientEvent] // Event queue
+	children     closers                  // Children objects
 	closed       atomic.Bool              // Client is closed
 }
 
@@ -62,6 +63,7 @@ func NewClient() (*Client, error) {
 
 	clnt.handle = cgo.NewHandle(clnt)
 	clnt.queue.init()
+	clnt.children.init()
 
 	var rc C.int
 	clnt.avahiClient = C.avahi_client_new(
@@ -91,6 +93,8 @@ func (clnt *Client) Close() {
 	if !clnt.closed.Swap(true) {
 		C.avahi_threaded_poll_stop(clnt.threadedPoll)
 
+		clnt.children.close()
+
 		C.avahi_client_free(clnt.avahiClient)
 		clnt.avahiClient = nil
 
@@ -100,6 +104,16 @@ func (clnt *Client) Close() {
 		clnt.queue.Close()
 		clnt.handle.Delete()
 	}
+}
+
+// addCloser adds a child object that will be closed when client is closed
+func (clnt *Client) addCloser(obj closer) {
+	clnt.children.add(obj)
+}
+
+// delCloser deletes a child object
+func (clnt *Client) delCloser(obj closer) {
+	clnt.children.del(obj)
 }
 
 // Chan returns a channel where [ClientState] change events

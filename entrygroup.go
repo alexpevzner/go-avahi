@@ -123,6 +123,9 @@ func NewEntryGroup(clnt *Client) (*EntryGroup, error) {
 		return nil, clnt.errno()
 	}
 
+	// Register self to be closed if Client is closed
+	egrp.clnt.addCloser(egrp)
+
 	return egrp, nil
 }
 
@@ -152,6 +155,7 @@ func (egrp *EntryGroup) Get(ctx context.Context) (*EntryGroupEvent, error) {
 func (egrp *EntryGroup) Close() {
 	if !egrp.closed.Swap(true) {
 		egrp.clnt.begin()
+		egrp.clnt.delCloser(egrp)
 		C.avahi_entry_group_free(egrp.avahiEntryGroup)
 		egrp.avahiEntryGroup = nil
 		egrp.clnt.end()

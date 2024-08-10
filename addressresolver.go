@@ -108,6 +108,9 @@ func NewAddressResolver(
 		return nil, clnt.errno()
 	}
 
+	// Register self to be closed if Client is closed
+	resolver.clnt.addCloser(resolver)
+
 	return resolver, nil
 }
 
@@ -139,6 +142,7 @@ func (resolver *AddressResolver) Get(ctx context.Context) (
 func (resolver *AddressResolver) Close() {
 	if !resolver.closed.Swap(true) {
 		resolver.clnt.begin()
+		resolver.clnt.delCloser(resolver)
 		C.avahi_address_resolver_free(resolver.avahiResolver)
 		resolver.avahiResolver = nil
 		resolver.clnt.end()

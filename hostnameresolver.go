@@ -113,6 +113,9 @@ func NewHostNameResolver(
 		return nil, clnt.errno()
 	}
 
+	// Register self to be closed if Client is closed
+	resolver.clnt.addCloser(resolver)
+
 	return resolver, nil
 }
 
@@ -144,6 +147,7 @@ func (resolver *HostNameResolver) Get(ctx context.Context) (
 func (resolver *HostNameResolver) Close() {
 	if !resolver.closed.Swap(true) {
 		resolver.clnt.begin()
+		resolver.clnt.delCloser(resolver)
 		C.avahi_host_name_resolver_free(resolver.avahiResolver)
 		resolver.avahiResolver = nil
 		resolver.clnt.end()

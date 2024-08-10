@@ -126,6 +126,9 @@ func NewServiceBrowser(
 		return nil, clnt.errno()
 	}
 
+	// Register self to be closed if Client is closed
+	browser.clnt.addCloser(browser)
+
 	return browser, nil
 }
 
@@ -157,6 +160,7 @@ func (browser *ServiceBrowser) Get(ctx context.Context) (*ServiceBrowserEvent,
 func (browser *ServiceBrowser) Close() {
 	if !browser.closed.Swap(true) {
 		browser.clnt.begin()
+		browser.clnt.delCloser(browser)
 		C.avahi_service_browser_free(browser.avahiBrowser)
 		browser.avahiBrowser = nil
 		browser.clnt.end()
