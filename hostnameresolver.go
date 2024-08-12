@@ -49,7 +49,8 @@ type HostNameResolverEvent struct {
 	Protocol Protocol          // Network protocol
 	Err      ErrCode           // In a case of ResolverFailure
 	Flags    LookupResultFlags // Lookup flags
-	Addr     netip.Addr        // Resolved IP address
+	Hostname string            // Hostname (mirrored)
+	Addr     netip.Addr        // IP address (resolved)
 }
 
 // NewHostNameResolver creates a new [HostNameResolver].
@@ -180,6 +181,7 @@ func hostnameResolverCallback(
 		IfIndex:  IfIndex(ifindex),
 		Protocol: Protocol(proto),
 		Flags:    LookupResultFlags(flags),
+		Hostname: C.GoString(hostname),
 		Addr:     ip,
 	}
 

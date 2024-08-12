@@ -49,7 +49,8 @@ type AddressResolverEvent struct {
 	Protocol Protocol          // Network protocol
 	Err      ErrCode           // In a case of ResolverFailure
 	Flags    LookupResultFlags // Lookup flags
-	Hostname string            // Resolved hostname
+	Addr     netip.Addr        // IP address (mirrored)
+	Hostname string            // Hostname (resolved)
 }
 
 // NewAddressResolver creates a new [AddressResolver].
@@ -169,12 +170,14 @@ func addressResolverCallback(
 	resolver := (*cgo.Handle)(p).Value().(*AddressResolver)
 
 	// Generate an event
+	ip := decodeAvahiAddress(caddr)
 	evnt := &AddressResolverEvent{
 		Event:    ResolverEvent(event),
 		IfIndex:  IfIndex(ifindex),
 		Protocol: Protocol(proto),
 		Flags:    LookupResultFlags(flags),
 		Hostname: C.GoString(hostname),
+		Addr:     ip,
 	}
 
 	if evnt.Event == ResolverFailure {
