@@ -89,6 +89,15 @@ func NewAddressResolver(
 		return nil, ErrInvalidAddress
 	}
 
+	// For some strange reasons, Avahi doesn't resolve loopback
+	// address unless ifindex and proto are UNSPEC. So fix it here
+	//
+	// TODO: better investigate this problem.
+	if addr.IsLoopback() {
+		ifindex = IfIndexUnspec
+		proto = ProtocolUnspec
+	}
+
 	// Create AvahiAddressResolver
 	avahiClient := clnt.begin()
 	defer clnt.end()
