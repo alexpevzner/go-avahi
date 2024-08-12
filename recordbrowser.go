@@ -188,7 +188,10 @@ func recordBrowserCallback(
 		Name:     C.GoString(name),
 		Class:    DNSClass(dnsclass),
 		Type:     DNSType(dnstype),
-		Data:     C.GoBytes(rdata, C.int(rsize)),
+	}
+
+	if rdata != nil {
+		evnt.Data = C.GoBytes(rdata, C.int(rsize))
 	}
 
 	if evnt.Event == BrowserFailure {

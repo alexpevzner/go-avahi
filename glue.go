@@ -42,9 +42,13 @@ func makeAvahiAddress(addr netip.Addr) (C.AvahiAddress, error) {
 func decodeAvahiAddress(caddr *C.AvahiAddress) netip.Addr {
 	var ip netip.Addr
 
-	if caddr.proto == C.AVAHI_PROTO_INET {
+	switch {
+	case caddr == nil:
+		// Do nothing
+
+	case caddr.proto == C.AVAHI_PROTO_INET:
 		ip = netip.AddrFrom4(*(*[4]byte)(unsafe.Pointer(&caddr.data)))
-	} else {
+	case caddr.proto == C.AVAHI_PROTO_INET6:
 		ip = netip.AddrFrom16(*(*[16]byte)(unsafe.Pointer(&caddr.data)))
 	}
 
