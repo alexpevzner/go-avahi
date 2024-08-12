@@ -63,6 +63,16 @@ type ServiceResolverEvent struct {
 	Txt          []string          // TXT record ("key=value"...) (resolved)
 }
 
+// FQDN returns a Fully Qualified Domain Name by joining
+// Hostname and Domain.
+func (evnt *ServiceResolverEvent) FQDN() string {
+	fqdn := evnt.Hostname
+	if evnt.Domain != "" {
+		fqdn += "." + evnt.Domain
+	}
+	return fqdn
+}
+
 // NewServiceResolver creates a new [ServiceResolver].
 //
 // ServiceResolver resolves hostname, IP address and TXT record of
