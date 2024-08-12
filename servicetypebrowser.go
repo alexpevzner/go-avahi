@@ -63,7 +63,7 @@ type ServiceTypeBrowserEvent struct {
 // [ServiceTypeBrowser.Chan].
 //
 // Technically speaking, NewServiceTypeBrowser monitors network for the
-// PTR records with the name _services._dns-sd._udp..<domain>, with the
+// PTR records with the name _services._dns-sd._udp.<domain>, with the
 // domain defaulted to "local", which yields a list of all available
 // services on the network. See [RFC6763, 9] for details.
 //
