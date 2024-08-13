@@ -121,7 +121,6 @@ func addAddressResolver(cases *[]reflect.SelectCase,
 	clnt *Client, evnt *ServiceResolverEvent) error {
 
 	addr := evnt.AddrPort.Addr()
-	addr = netip.MustParseAddr("127.0.0.1")
 
 	resolver, err := NewAddressResolver(
 		clnt,

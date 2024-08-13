@@ -19,7 +19,7 @@ type EntryGroupState int
 
 // EntryGroupState values:
 const (
-	// The group has not yet been commited
+	// The group has not yet been committed
 	EntryGroupStateUncommited EntryGroupState = C.AVAHI_ENTRY_GROUP_UNCOMMITED
 
 	// The group is currently being registered
@@ -38,7 +38,7 @@ const (
 
 // clientStateNames contains names for known client states.
 var entryGroupStateNames = map[EntryGroupState]string{
-	EntryGroupStateUncommited:  "uncommited",
+	EntryGroupStateUncommited:  "uncommitted",
 	EntryGroupStateRegistering: "registering",
 	EntryGroupStateEstablished: "established",
 	EntryGroupStateCollision:   "collision",
