@@ -2,6 +2,7 @@
 
 [![godoc.org](https://godoc.org/github.com/alexpevzner/go-avahi?status.svg)](https://godoc.org/github.com/alexpevzner/go-avahi)
 ![GitHub](https://img.shields.io/github/license/alexpevzner/go-avahi)
+[![Go Report Card](https://goreportcard.com/badge/github.com/alexpevzner/go-avahi)](https://goreportcard.com/report/github.com/alexpevzner/go-avahi)
 
 ```
 import "github.com/alexpevzner/go-avahi"
