@@ -89,6 +89,61 @@ func NewHostNameResolver(
 	resolver.handle = cgo.NewHandle(resolver)
 	resolver.queue.init()
 
+	// Handle ClientLoopbackWorkarounds.
+	//
+	// Only if all of the following is true:
+	//   1. ClientLoopbackWorkarounds enabled
+	//   2. ifindex is loopback
+	//   3. hostname is localhost
+	//   4. LookupUseMulticast query
+	//   5. proto is valid
+	//
+	// If all matches, we resolve "locahost" by ourselves.
+	if clnt.hasFlags(ClientLoopbackWorkarounds) {
+		use := flags & (LookupUseWideArea | LookupUseMulticast)
+		if use == LookupUseMulticast && isLocalhost(hostname) {
+			loopback, err := Loopback()
+			if err != nil {
+				return nil, err
+			}
+
+			if ifindex == loopback {
+				// Avahi can't resolve "localhost".
+				// So just do its work for it.
+				flags := LookupResultCached |
+					LookupResultMulticast |
+					LookupResultLocal
+
+				var addr netip.Addr
+				switch proto {
+				case ProtocolIP4:
+					addr = loopbackIP4
+
+				// Avahi treats ProtocolUnspec as IP6
+				case ProtocolIP6, ProtocolUnspec:
+					addr = loopbackIP6
+
+				default:
+					return nil, ErrInvalidProtocol
+				}
+
+				evnt := &HostNameResolverEvent{
+					Event:    ResolverFound,
+					IfIndex:  ifindex,
+					Protocol: proto,
+					Flags:    flags,
+					Hostname: hostname,
+					Addr:     addr,
+				}
+
+				resolver.queue.Push(evnt)
+				resolver.clnt.addCloser(resolver)
+
+				return resolver, nil
+			}
+		}
+	}
+
 	// Convert strings from Go to C
 	chostname := C.CString(hostname)
 	defer C.free(unsafe.Pointer(chostname))
@@ -149,8 +204,10 @@ func (resolver *HostNameResolver) Close() {
 	if !resolver.closed.Swap(true) {
 		resolver.clnt.begin()
 		resolver.clnt.delCloser(resolver)
-		C.avahi_host_name_resolver_free(resolver.avahiResolver)
-		resolver.avahiResolver = nil
+		if resolver.avahiResolver != nil {
+			C.avahi_host_name_resolver_free(resolver.avahiResolver)
+			resolver.avahiResolver = nil
+		}
 		resolver.clnt.end()
 
 		resolver.queue.Close()

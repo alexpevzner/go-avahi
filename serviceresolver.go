@@ -217,6 +217,7 @@ func serviceResolverCallback(
 	p unsafe.Pointer) {
 
 	resolver := (*cgo.Handle)(p).Value().(*ServiceResolver)
+	clnt := resolver.clnt
 
 	// Decode IP address:port
 	ip := decodeAvahiAddress(caddr)
@@ -243,13 +244,13 @@ func serviceResolverCallback(
 	// uses a real host name and domain instead of localhost.localdomain.
 	//
 	// Fix it here.
-	if ip.IsLoopback() {
+	if clnt.hasFlags(ClientLoopbackWorkarounds) && ip.IsLoopback() {
 		evnt.Hostname = "localhost"
 		evnt.Domain = "localdomain"
 	}
 
 	if evnt.Event == ResolverFailure {
-		evnt.Err = resolver.clnt.errno()
+		evnt.Err = clnt.errno()
 	}
 
 	resolver.queue.Push(evnt)

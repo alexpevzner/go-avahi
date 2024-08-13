@@ -168,6 +168,7 @@ func addressResolverCallback(
 	p unsafe.Pointer) {
 
 	resolver := (*cgo.Handle)(p).Value().(*AddressResolver)
+	clnt := resolver.clnt
 
 	// Generate an event
 	ip := decodeAvahiAddress(caddr)
@@ -180,8 +181,16 @@ func addressResolverCallback(
 		Addr:     ip,
 	}
 
+	// If host is connected to the internet, Avahi erroneously
+	// uses a real host name and domain instead of localhost.localdomain.
+	//
+	// Fix it here.
+	if clnt.hasFlags(ClientLoopbackWorkarounds) && ip.IsLoopback() {
+		evnt.Hostname = "localhost.localdomain"
+	}
+
 	if evnt.Event == ResolverFailure {
-		evnt.Err = resolver.clnt.errno()
+		evnt.Err = clnt.errno()
 	}
 
 	resolver.queue.Push(evnt)

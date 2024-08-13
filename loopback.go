@@ -13,11 +13,18 @@ package avahi
 import (
 	"fmt"
 	"net"
+	"net/netip"
 	"sync/atomic"
 )
 
 // Cached loopback interface index
 var loopback int32 = -1
+
+// loopback addresses
+var (
+	loopbackIP4 = netip.MustParseAddr("127.0.0.1")
+	loopbackIP6 = netip.MustParseAddr("::1")
+)
 
 // Loopback returns index of the loopback network interface.
 //
