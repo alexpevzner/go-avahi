@@ -65,6 +65,147 @@ the following differences still exist:
   - Workaround for Avahi localhost handling bug is provides (for details,
     see "Loopback interface handling and localhost" section above).
 
+# A bit of theory (Multicast DNS and DNS-SD essentials)
+
+Avahi API is much simpler to understand when reader knows the basics
+of the Multicast DNS and DNS-SD protocols.
+
+DNS is a kind of a distributed key-value database. In classical (unicast)
+DNS, records are maintained by the hierarchy of servers, while in the
+MDNS each participating host maintains its own records by itself and
+responds when somebody asks, usually using multicast UDP as transport.
+
+In the case of classical DNS, clients perform database queries by
+contacting DNS servers. In contrast, with multicast DNS, clients send
+their queries to all other hosts in the vicinity using UDP multicast
+(e.g., "Hey! I need an IP address for the 'example.local' hostname. Who
+knows the answer?"). The hosts then respond by their own. To speed things
+up, when a new host connects to the network, it announces its resource
+records (RRs) to all interested parties and attempts to notify others of
+its removal just before it disconnects. Clients can capture and cache
+this information, eliminating the need for a slow network query each
+time this information is requires.
+
+Each entry in the DNS database (called the Resource Record, RR) is
+identified by the search key, which consist of:
+  - record name
+  - record class
+  - record type
+
+The record name always looks like domain name, i.e., it is a string that
+consists from the dot-separated labels. The "example.com" name consists of
+two labels: "example" and "com".
+
+This syntax is used even for names, which are not domains by themselves.
+For example, "1.0.0.127.in-addr.arpa" is the IP address "127.0.0.1", written
+using a DNS name syntax (please notice the reverse order of labels),
+and "_http._tcp.local" is the collective name of all HTTP servers running
+over TCP on a local network.
+
+To distinguish between normal domains and pseudo-domains, a number of special
+top-level domains have been reserved for this purpose, like "in-addr.arpa"
+for IP addresses
+
+DNS defines many classes, but the only class relevant to multicast DNS is IN,
+which stands for "Internet." That's all there is to it.
+
+Record type is more important, as many record types are being used.
+We will not attempt to list them all, the most important for as are
+the following:
+
+	A	- these records contains one or more IPv4 addresses
+	AAAA	- these records contains one or more IPv6 addresses
+	PTR	- the pointer record. They point to some other domain name
+	SRV	- service descriptor
+	TXT	- contains a lot of additional information, represented
+		  as a list of key=value textual pairs.
+
+Once we have a record name and type, we can query a record value.
+Interpretation of this value depends on a record type.
+
+Now lets manually discover all IPP printers in our local network.
+We will use the small utility, [mcdig], which allows to manually
+perform the Multicast DNS queries.
+
+First of all, lets list all services on a network around. This is
+a query of the "_services._dns-sd._udp.local" records of type PTR,
+and [mcdig] will return the following answer (shortened):
+
+	$ mcdig _services._dns-sd._udp.local ptr
+	;; ANSWER SECTION:
+	_services._dns-sd._udp.local.	4500	IN	PTR	_http._tcp.local.
+	_services._dns-sd._udp.local.	4500	IN	PTR	_https._tcp.local.
+	_services._dns-sd._udp.local.	4500	IN	PTR	_ipp._tcp.local.
+	_services._dns-sd._udp.local.	4500	IN	PTR	_ipps._tcp.local.
+	_services._dns-sd._udp.local.	4500	IN	PTR	_printer._tcp.local.
+
+This is the same list as avahi-browse -a returns, and programmatically
+it can be obtained, using the [ServiceTypeBrowser] object.
+
+Please notice, the "_services._dns-sd._udp.<domain>" is a reserved
+name for this purpose and <domain> is usually "local"; this top-level
+domain name is reserved for this purpose.
+
+Now we see that somebody in our network provide the "_http._tcp.local."
+service (IPP printing), "_http._tcp.local." service (HTTP server) and
+so on. In a typical network there will be many services and they will
+duplicate in the answer.
+
+Now, we are only interested in the IPP printers, so:
+
+	$ mcdig _ipp._tcp.local. ptr
+	;; ANSWER SECTION:
+	_ipp._tcp.local.	4500	IN	PTR	Kyocera\ ECOSYS\ M2040dn._ipp._tcp.local.
+
+Now we have a so called service instance name, "Kyocera ECOSYS M2040dn".
+Please notice, unlike classical DNS, MDNS labels may contain spaces (and
+virtually any valid UTF-8 characters), but among these labels looks
+like human-readable names, they are network-unique (which is enforced
+by the protocol) and can be used to unambiguously identify the device.
+
+The same list will be returned by the avahi-browse _ipp._tcp command
+(please notice, the .local suffix is implied here) or using the
+[ServiceBrowser] object.
+
+Now we need to know a bit more about the device, so the next query is:
+
+	$ mcdig Kyocera\ ECOSYS\ M2040dn._ipp._tcp.local. any
+	Kyocera\ ECOSYS\ M2040dn._ipp._tcp.local.	120	IN	SRV	0 0 631 KM7B6A91.local.
+	KM7B6A91.local.					120	IN	A	192.168.1.102
+	KM7B6A91.local.					120	IN	AAAA	fe80::217:c8ff:fe7b:6a91
+
+The response is really huge and significantly shortened here. The TXT
+record is omitted at all, as it really large.
+
+The important records are:
+  - A and AAAA brings us IP addresses of the device
+  - SRV record gives us a hostname (which is not the same as the
+    instance name, and is not as friendly and human-readable)
+    and IP port (631, the third parameter in the SRV RR)
+  - TXT record, which brings a lot of additional information,
+    like duplex support ("Duplex=T"), root path for the HTTP
+    requests ("rp=ipp/print"; IPP is the HTTP-based protocol),
+    list of supported documents formats and much more.
+
+The same information can be obtained programmatically, using the
+[ServiceResolver] object.
+
+And finally, we can lookup IP address by hostname and hostname by IP address:
+
+	$ mcdig KM7B6A91.local. a
+	;; ANSWER SECTION:
+	KM7B6A91.local.			120	IN	A	192.168.1.102
+
+	$ mcdig 102.1.168.192.in-addr.arpa ptr
+	;; ANSWER SECTION:
+	102.1.168.192.in-addr.arpa.	120	IN	PTR	KM7B6A91.local.
+
+It corresponds to avahi commands "avahi-resolve-host-name KM7B6A91.local" and
+"avahi-resolve-address 192.168.1.102".
+
+The [HostNameResolver] and [AddressResolver] objects provide the similar
+functionality in a form of API.
+
 # Key objects
 
 The key objects exposed by this package are:
@@ -301,5 +442,6 @@ If this flag is in use, the following changes will occur:
 [Avahi]: https://avahi.org/
 [IPP over USB]: https://www.usb.org/document-library/ipp-protocol-10
 [ipp-usb]: https://github.com/OpenPrinting/ipp-usb
+[mcdig]: https://github.com/alexpevzner/mcdig
 */
 package avahi
