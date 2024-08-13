@@ -11,7 +11,12 @@
 /*
 Package avahi provides a fairly complete CGo binding for [Avahi] client.
 
-Please notice, there is an alternative Avahi binding for go:
+Avahi is the standard implementation of Multicast DNS and DNS-SD for Linux, and
+likely for some BSD systems as well. This technology is essential for automatic
+network configuration, service discovery on local networks, and driverless
+printing and scanning.
+
+Please notice, there is an alternative Avahi binding for Go:
 
   - GitHub project: https://github.com/holoplot/go-avahi
   - The documentation: https://pkg.go.dev/github.com/holoplot/go-avahi
@@ -28,6 +33,27 @@ This package has the following key differences:
     so own, have their own type, not a generic int16/int32
   - And the last but not least, it attempts to fill the gaps
     in Avahi documentation, which is not very detailed
+
+There is also a pure Go DNS library:
+
+  - GitHub project: https://github.com/miekg/dns
+  - The documentation: https://pkg.go.dev/github.com/miekg/dns
+
+This library is comprehensive, high-quality, and quite popular. It is possible
+(and not very difficult) to implement MDNS/DNS-SD directly on top of it,
+allowing the entire protocol to run within the user process without relying on
+a system daemon like Avahi.
+
+There are several existing implementations; however, I don't have experience
+with them, so I can't provide a review.
+
+One inherent disadvantage of all these implementations is that they do not work
+with local services operating via the loopback network interface. MDNS is a
+multicast-based protocol, and the loopback interface does not support
+multicasting. System daemons like Avahi do not actually use multicasting for
+loopback services; instead, they emulate the publishing and discovery
+functionality for those services. An in-process implementation cannot achieve
+this.
 
 # Key objects
 
