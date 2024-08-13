@@ -1,5 +1,6 @@
 # CGo binding for Avahi
 
+[![godoc.org](https://pkg.go.dev/github.com/alexpevzner/go-avahi?status.svg)](https://pkg.go.dev/github.com/alexpevzner/go-avahi)
 ![GitHub](https://img.shields.io/github/license/alexpevzner/go-avahi)
 
 ```
