@@ -10,14 +10,15 @@
 
 package avahi
 
-// #cgo pkg-config: avahi-client
-//
-// #include <avahi-client/client.h>
-import "C"
 import (
 	"net/netip"
 	"unsafe"
 )
+
+// #cgo pkg-config: avahi-client
+//
+// #include <avahi-client/client.h>
+import "C"
 
 // makeAvahiAddress makes C.AvahiAddress
 func makeAvahiAddress(addr netip.Addr) (C.AvahiAddress, error) {
