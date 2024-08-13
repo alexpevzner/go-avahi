@@ -1,5 +1,7 @@
 # CGo binding for Avahi
 
+![GitHub](https://img.shields.io/github/license/alexpevzner/go-avahi)
+
 ```
 import "github.com/alexpevzner/go-avahi"
 ```
