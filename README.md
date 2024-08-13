@@ -8,14 +8,14 @@
 import "github.com/alexpevzner/go-avahi"
 ```
 
-Package avahi provides a fairly complete CGo binding for [Avahi] client.
+Package avahi provides a fairly complete CGo binding for Avahi client.
 
 Avahi is the standard implementation of Multicast DNS and DNS-SD for Linux, and
 likely for some BSD systems as well. This technology is essential for automatic
 network configuration, service discovery on local networks, and driverless
 printing and scanning.
 
-Please notice, there is an alternative Avahi binding for Go:
+Please notice, there is an alternative Avahi binding in pure Go:
 
   - GitHub project: https://github.com/holoplot/go-avahi
   - The documentation: https://pkg.go.dev/github.com/holoplot/go-avahi
@@ -36,7 +36,7 @@ This package has the following key differences:
 # Build requirements
 
 This package requires Go 1.18 or newer. This is an easy requirement,
-because Go 1.18 was released at March 2022, so much distros should
+because Go 1.18 was released at March 2022, so must distros should
 be up to date.
 
 As it is CGo binding, it requires avahi-devel (or avahi-client, the
@@ -49,6 +49,12 @@ additional effort.
 
 This package was developed and tested at Fedora 40, but expected
 to work at all other distros.
+
+# Runtime requirements
+
+This package requires a working Avahi daemon and libavahi-client dynamic
+libraries installed on a system. In most cases it should work out of
+box.
 
 <!-- vim:ts=8:sw=4:et:textwidth=72
 -->
