@@ -55,6 +55,16 @@ loopback services; instead, they emulate the publishing and discovery
 functionality for those services. An in-process implementation cannot achieve
 this.
 
+# Package philosophy
+
+The Avahi API wrapper, provided by this package, attempts to be as close
+to the original Avahi C API and as transparent, as possible. However,
+the following differences still exist:
+  - Events are reported via channels, not via callbacks, as in C
+  - AvahiPoll object is not exposed and handled internally
+  - Workaround for Avahi localhost handling bug is provides (for details,
+    see "Loopback interface handling and localhost" section above).
+
 # Key objects
 
 The key objects exposed by this package are:
@@ -64,6 +74,7 @@ The key objects exposed by this package are:
     [ServiceBrowser], [ServiceTypeBrowser]
   - Assortment of resolvers: [AddressResolver], [HostNameResolver],
     [ServiceResolver]
+  - [EntryGroup], which implements Avahi publishing API.
 
 These objects have 1:1 relations to the corresponding avahi objects
 (i.e., Client represents AvahiClient, DomainBrowser represennts
@@ -93,15 +104,17 @@ Client is the required parameter for creation of Browsers and Resolvers
 and "owns" these objects.
 
 Client has a state and this state can change dynamically. Changes in
-the Client state reported as a series of [ClientState] events, reported
+the Client state reported as a series of [ClientEVENT] events, reported
 via the [Client.Chan] channel or [Client.Get] convenience wrapper.
 
 The Client itself can survive avahi-daemon (and DBus server) failure
 and restart. If it happens, [ClientStateFailure] event will be reported,
-followed by [ClientStateConnecting] and filanny [ClientStateRunning] events
-when client connection will be recovered. However, all Browsers and Resolvers
-owned by the Client will fail (with [BrowserFailure]/[ResolverFailure]
-events) and will not be restarted automatically.
+followed by [ClientStateConnecting] and finally [ClientStateRunning],
+when client connection will be recovered. However, all Browsers, Resolvers
+and [EntryGroup]-s owned by the Client will fail (with
+[BrowserFailure]/[ResolverFailure]/[EntryGroupStateFailure] events) and
+will not be restarted automatically. If it happens, application needs
+to close and re-create these objects.
 
 The Client manages underlying AvahiPoll object (Avahi event loop) automatically
 and doesn't expose it via its interface.
@@ -168,6 +181,42 @@ eventually stop waiting. A reasonable approach would be to wait for a
 meaningful duration (for example, 1 second) after the last event in the
 sequence arrives.
 
+# EntryGroup
+
+[EntryGroup] implements Avahi publishing API. This is, essentially,
+a collection of resource entries which can be published "atomically",
+i.e., either the whole group is published or not.
+
+Records can be added to the EntryGroup using [EntryGroup.AddService],
+[EntryGroup.AddAddress] and [EntryGroup.AddRecord] methods. Existing
+services can be modified, using the [EntryGroup.AddServiceSubtype] and
+[EntryGroup.UpdateServiceTxt] methods. Once group is configured,
+application must call [EntryGroup.Commit] for changes to take effect.
+
+When records are added, even before Commit, Avahi performs some basic
+checking of the group consistency, and if consistency is violated or
+added records contains invalid data, the appropriate call will fail
+with suitable error code.
+
+When publishing services, there is no way to set service IP address
+explicitly. Instead, Avahi deduces appropriate IP address, based on
+the network interface being used and available addresses assigned
+to that interface.
+
+Like other objects, EntryGroup maintains a dynamic state and reports
+its state changes using [EntryGroupEvent] which can be received either
+via the channel, returned by [EntryGroup.Chan] or via the
+[EntryGroup.Get] convenience wrapper.
+
+As the protocol requires, EntryGroup implies a conflict checking,
+so this process takes some time. As result of this process, the
+EntryGroup will eventually come into the either EntryGroupStateEstablished
+or EntryGroupStateCollision state.
+
+Unfortunately, in a case of collision there is no detailed reporting,
+which entry has caused a collision. So it is not recommended to mix
+unrelated entries in the same group.
+
 # IP4 vs IP6
 
 When new Browser or Resolver is created, the 3rd parameter of constructor
@@ -214,6 +263,43 @@ or scanners) may have a different, sometimes surprising, behavior.
 So it makes sense to perform queries of all four transport/address
 combinations and merge results.
 
+# Loopback interface handling and localhost
+
+As loopback network interface doesn't support multicasting, Avahi
+just emulates the appropriate functionality.
+
+Loopback support is essentially for implementing the [IPP over USB]
+protocol, and [ipp-usb] daemon actively uses it. It allows the many
+modern printers and scanners to work seamlessly under the Linux OS.
+
+Unfortunately, loopback support is broken in Avahi. This is a long
+story, but in short:
+  - Services, published at the loopback address (127.0.0.1 or ::1)
+    are erroneously reported by AvahiServiceResolver as being
+    published at the real hostname and domain, instead of
+    "localhost.localdomain"
+  - AvahiAddressResolver also resolves these addresses using
+    real hostname and domain
+  - AvahiHostNameResolver doesn't resolve neither "localhost" nor
+    "localhost.localdomain".
+
+This library provides a workaround, but it needs to be explicitly
+enabled, using the [ClientLoopbackWorkarounds] flag:
+
+	clnt, err := NewClient(ClientLoopbackWorkarounds)
+
+If this flag is in use, the following changes will occur:
+  - [ServiceResolver] and [AddressResolver] will return "localhost.localdomain"
+    for the loopback addresses
+  - [HostNameResolver] will resolve "localhost" and "localhost.localdomain"
+    as either 127.0.0.1 or ::1, depending on a value of the
+    proto parameter for the [NewHostNameResolver] call. Please notice that
+    if proto is [ProtocolUnspec], NewHostNameResolver will use by
+    default [ProtocolIP6], to be consistent with other Avahi API
+    (see section "IP4 vs IP6" for details).
+
 [Avahi]: https://avahi.org/
+[IPP over USB]: https://www.usb.org/document-library/ipp-protocol-10
+[ipp-usb]: https://github.com/OpenPrinting/ipp-usb
 */
 package avahi
