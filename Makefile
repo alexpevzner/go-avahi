@@ -1,1 +1,1 @@
-include ../../Rules.mak
+include Rules.mak
