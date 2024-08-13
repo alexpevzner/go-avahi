@@ -2,3 +2,4 @@ tags
 *.swp
 *.orig
 coverage.out
+go-avahi.test
