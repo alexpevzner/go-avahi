@@ -72,5 +72,130 @@ This package requires a working Avahi daemon and libavahi-client dynamic
 libraries installed on a system. In most cases it should work out of
 box.
 
+# An Example
+
+The following simple example demonstrates usage of the API provided by
+this package. This simple program scans local network for available network
+printers and outputs found devices.
+
+```
+// github.com/alexpevzner/go-avahi example
+
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+	"time"
+
+	"github.com/alexpevzner/go-avahi"
+)
+
+// checkErr terminates a program if err is not nil.
+func checkErr(err error, format string, args ...any) {
+	if err != nil {
+		msg := fmt.Sprintf(format, args...)
+		fmt.Printf("%s: %s\n", msg, err)
+		os.Exit(1)
+	}
+}
+
+// The main function.
+func main() {
+	// Create a Client with enabled workarounds for Avahi bugs
+	clnt, err := avahi.NewClient(avahi.ClientLoopbackWorkarounds)
+	checkErr(err, "avahi.NewClient")
+
+	defer clnt.Close()
+
+	// Create context with timeout
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Create poller to simplify event loop.
+	poller := avahi.NewPoller()
+
+	// Create ServiceBrowsers for a variety of printer types
+	svctypes := []string{
+		"_printer._tcp",        // LPD protocol
+		"_pdl-datastream._tcp", // HP JetDirect
+		"_ipp._tcp",            // IPP over HTTPS
+		"_ipps._tcp",           // IPP over HTTPS
+	}
+
+	for _, svctype := range svctypes {
+		browser, err := avahi.NewServiceBrowser(
+			clnt,
+			avahi.IfIndexUnspec,
+			avahi.ProtocolUnspec,
+			svctype,
+			"",
+			avahi.LookupUseMulticast)
+
+		checkErr(err, "browse %q", svctype)
+		poller.AddServiceBrowser(browser)
+	}
+
+	// Wait for Browser events. Create resolvers on a fly.
+	//
+	// Here we use asynchronous API, so we can start resolvers
+	// early to run in background.
+	//
+	// Run until we found/resolve all we expect or timeout occurs.
+	wanted := make(map[string]struct{})
+	for _, svctype := range svctypes {
+		wanted[svctype] = struct{}{}
+	}
+
+	for ctx.Err() == nil && len(wanted) > 0 {
+		evnt, _ := poller.Poll(ctx)
+
+		switch evnt := evnt.(type) {
+		case *avahi.ServiceBrowserEvent:
+			switch evnt.Event {
+			case avahi.BrowserNew:
+				resolver, err := avahi.NewServiceResolver(
+					clnt,
+					evnt.IfIndex,
+					evnt.Protocol,
+					evnt.InstanceName,
+					evnt.SvcType,
+					evnt.Domain,
+					avahi.ProtocolUnspec,
+					avahi.LookupUseMulticast)
+
+				checkErr(err, "resolve %q", evnt.InstanceName)
+				poller.AddServiceResolver(resolver)
+				wanted[evnt.InstanceName] = struct{}{}
+
+			case avahi.BrowserAllForNow:
+				delete(wanted, evnt.SvcType)
+
+			case avahi.BrowserFailure:
+				checkErr(err, "browse %q", evnt.SvcType)
+			}
+
+		case *avahi.ServiceResolverEvent:
+			switch evnt.Event {
+			case avahi.ResolverFound:
+				fmt.Printf("Found new device:\n"+
+					"  Name:       %s:\n"+
+					"  Type:       %s\n"+
+					"  IP address: %s\n",
+					evnt.InstanceName,
+					evnt.SvcType,
+					evnt.AddrPort)
+
+				delete(wanted, evnt.InstanceName)
+
+			case avahi.ResolverFailure:
+				checkErr(err, "resolve %q", evnt.InstanceName)
+			}
+		}
+	}
+}
+```
+
 <!-- vim:ts=8:sw=4:et:textwidth=72
 -->https://godoc.org/github.com/alexpevzner/go-avahi
