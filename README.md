@@ -34,6 +34,22 @@ This package has the following key differences:
   - And the last but not least, it attempts to fill the gaps
     in Avahi documentation, which is not very detailed
 
+This library is comprehensive, high-quality, and quite popular. It is possible
+(and not very difficult) to implement MDNS/DNS-SD directly on top of it,
+allowing the entire protocol to run within the user process without relying on
+a system daemon like Avahi.
+
+There are several existing implementations; however, I don't have experience
+with them, so I can't provide a review.
+
+One inherent disadvantage of all these implementations is that they do not work
+with local services operating via the loopback network interface. MDNS is a
+multicast-based protocol, and the loopback interface does not support
+multicasting. System daemons like Avahi do not actually use multicasting for
+loopback services; instead, they emulate the publishing and discovery
+functionality for those services. An in-process implementation cannot achieve
+this.
+
 # Avahi documentation
 
 [Avahi API documentation](https://avahi.org/doxygen/html/), to be
