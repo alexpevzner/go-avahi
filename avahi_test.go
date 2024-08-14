@@ -14,7 +14,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"net/netip"
-	"reflect"
 	"sort"
 	"testing"
 	"time"
@@ -33,10 +32,8 @@ func randName() string {
 }
 
 // addServiceTypeBrowser adds ServiceTypeBrowser
-//
-// On success, Browser's event channel added into the
-// list of channels, represented by []reflect.SelectCase.
-func addServiceTypeBrowser(cases *[]reflect.SelectCase, clnt *Client) error {
+// On success, Browser is added to the Poller.
+func addServiceTypeBrowser(poller *Poller, clnt *Client) error {
 	browser, err := NewServiceTypeBrowser(
 		clnt,
 		MustLoopback(),
@@ -48,20 +45,15 @@ func addServiceTypeBrowser(cases *[]reflect.SelectCase, clnt *Client) error {
 		return err
 	}
 
-	*cases = append(*cases, reflect.SelectCase{
-		Dir:  reflect.SelectRecv,
-		Chan: reflect.ValueOf(browser.Chan()),
-	})
-
+	poller.AddServiceTypeBrowser(browser)
 	return nil
 }
 
 // addServiceBrowser adds ServiceBrowser for the service defined by
 // the ServiceBrowserEvent.
 //
-// On success, Browser's event channel added into the
-// list of channels, represented by []reflect.SelectCase.
-func addServiceBrowser(cases *[]reflect.SelectCase,
+// On success, Browser is added to the Poller.
+func addServiceBrowser(poller *Poller,
 	clnt *Client, evnt *ServiceTypeBrowserEvent) error {
 
 	browser, err := NewServiceBrowser(
@@ -76,20 +68,15 @@ func addServiceBrowser(cases *[]reflect.SelectCase,
 		return err
 	}
 
-	*cases = append(*cases, reflect.SelectCase{
-		Dir:  reflect.SelectRecv,
-		Chan: reflect.ValueOf(browser.Chan()),
-	})
-
+	poller.AddServiceBrowser(browser)
 	return nil
 }
 
 // addServiceResolver adds ServiceResolver for the service defined
 // by the ServiceBrowserEvent.
 //
-// On success, Browser's event channel added into the
-// list of channels, represented by []reflect.SelectCase.
-func addServiceResolver(cases *[]reflect.SelectCase,
+// On success, Browser is added to the Poller.
+func addServiceResolver(poller *Poller,
 	clnt *Client, evnt *ServiceBrowserEvent) error {
 
 	resolver, err := NewServiceResolver(
@@ -104,20 +91,15 @@ func addServiceResolver(cases *[]reflect.SelectCase,
 		return err
 	}
 
-	*cases = append(*cases, reflect.SelectCase{
-		Dir:  reflect.SelectRecv,
-		Chan: reflect.ValueOf(resolver.Chan()),
-	})
-
+	poller.AddServiceResolver(resolver)
 	return nil
 }
 
 // addAddressResolver adds AddressResolver for the address defined
 // by the ServiceResolverEvent.
 //
-// On success, Browser's event channel added into the
-// list of channels, represented by []reflect.SelectCase.
-func addAddressResolver(cases *[]reflect.SelectCase,
+// On success, Browser is added to the Poller.
+func addAddressResolver(poller *Poller,
 	clnt *Client, evnt *ServiceResolverEvent) error {
 
 	addr := evnt.AddrPort.Addr()
@@ -133,20 +115,15 @@ func addAddressResolver(cases *[]reflect.SelectCase,
 		return err
 	}
 
-	*cases = append(*cases, reflect.SelectCase{
-		Dir:  reflect.SelectRecv,
-		Chan: reflect.ValueOf(resolver.Chan()),
-	})
-
+	poller.AddAddressResolver(resolver)
 	return nil
 }
 
 // addHostNameResolver adds HostNameResolver for the hostname defined
 // by the ServiceResolverEvent.
 //
-// On success, Browser's event channel added into the
-// list of channels, represented by []reflect.SelectCase.
-func addHostNameResolver(cases *[]reflect.SelectCase,
+// On success, Browser is added to the Poller.
+func addHostNameResolver(poller *Poller,
 	clnt *Client, evnt *ServiceResolverEvent) error {
 
 	resolver, err := NewHostNameResolver(
@@ -161,11 +138,7 @@ func addHostNameResolver(cases *[]reflect.SelectCase,
 		return err
 	}
 
-	*cases = append(*cases, reflect.SelectCase{
-		Dir:  reflect.SelectRecv,
-		Chan: reflect.ValueOf(resolver.Chan()),
-	})
-
+	poller.AddHostNameResolver(resolver)
 	return nil
 }
 
@@ -326,27 +299,18 @@ func TestAvahi(t *testing.T) {
 	expectHostNameResolver["127.0.0.1"] = true
 
 	// Resolve everything we've just published
-	cases := []reflect.SelectCase{
-		{
-			Dir:  reflect.SelectRecv,
-			Chan: reflect.ValueOf(ctx.Done()),
-		},
-	}
-
-	err = addServiceTypeBrowser(&cases, clnt)
+	poller := NewPoller()
+	err = addServiceTypeBrowser(poller, clnt)
 	if err != nil {
 		t.Errorf("%s", err)
 		return
 	}
 
 	for err == nil && expectCount() > 0 {
+		var evnt any
+		evnt, err = poller.Poll(ctx)
 
-		_, recv, _ := reflect.Select(cases)
-
-		switch evnt := recv.Interface().(type) {
-		case struct{}:
-			err = ctx.Err()
-
+		switch evnt := evnt.(type) {
 		case *ServiceTypeBrowserEvent:
 			t.Logf("%#v", evnt)
 			switch evnt.Event {
@@ -358,7 +322,7 @@ func TestAvahi(t *testing.T) {
 				n := evnt.SvcType
 				if expectServiceTypeBrowser[n] {
 					delete(expectServiceTypeBrowser, n)
-					err = addServiceBrowser(&cases,
+					err = addServiceBrowser(poller,
 						clnt, evnt)
 				}
 			case BrowserFailure:
@@ -376,7 +340,7 @@ func TestAvahi(t *testing.T) {
 				n := evnt.SvcType
 				if expectServiceBrowser[n] {
 					delete(expectServiceBrowser, n)
-					err = addServiceResolver(&cases,
+					err = addServiceResolver(poller,
 						clnt, evnt)
 				}
 			case BrowserFailure:
@@ -397,11 +361,11 @@ func TestAvahi(t *testing.T) {
 				if expectServiceResolver[n] {
 					delete(expectServiceResolver, n)
 
-					err = addAddressResolver(&cases,
+					err = addAddressResolver(poller,
 						clnt, evnt)
 					if err == nil {
-						err = addHostNameResolver(&cases,
-							clnt, evnt)
+						err = addHostNameResolver(
+							poller, clnt, evnt)
 					}
 				}
 
