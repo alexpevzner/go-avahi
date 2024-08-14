@@ -33,6 +33,22 @@ This package has the following key differences:
   - And the last but not least, it attempts to fill the gaps
     in Avahi documentation, which is not very detailed
 
+# Avahi documentation
+
+[Avahi API documentation](https://avahi.org/doxygen/html/), to be
+honest, is not easy to read. It lacks significant details and hard to
+understand unless you have a lot of a-priory knowledge in the subject.
+
+Among other things, this package attempts to fill this gap. As its
+exported objects map very closely to the native C API objects (except
+Go vs C naming conventions and using channels instead of callbacks),
+[the package reference](https://godoc.org/github.com/alexpevzner/go-avahi)
+may be useful as a generic Avahi API reference, regardless of
+programming language you use.
+
+So even if you are the C or Python programmer, you may find package
+reference useful for you.
+
 # Build requirements
 
 This package requires Go 1.18 or newer. This is an easy requirement,
@@ -57,4 +73,4 @@ libraries installed on a system. In most cases it should work out of
 box.
 
 <!-- vim:ts=8:sw=4:et:textwidth=72
--->
+-->https://godoc.org/github.com/alexpevzner/go-avahi
