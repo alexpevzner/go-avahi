@@ -52,9 +52,9 @@ type RecordBrowserEvent struct {
 	Err      ErrCode           // In a case of BrowserFailure
 	Flags    LookupResultFlags // Lookup flags
 	Name     string            // Record name
-	Class    DNSClass          // Record DNS class
-	Type     DNSType           // Record DNS type
-	Data     []byte            // Record data
+	RClass   DNSClass          // Record DNS class
+	RType    DNSType           // Record DNS type
+	RData    []byte            // Record data
 }
 
 // NewRecordBrowser creates a new [RecordBrowser].
@@ -185,12 +185,12 @@ func recordBrowserCallback(
 		Protocol: Protocol(proto),
 		Flags:    LookupResultFlags(flags),
 		Name:     C.GoString(name),
-		Class:    DNSClass(dnsclass),
-		Type:     DNSType(dnstype),
+		RClass:   DNSClass(dnsclass),
+		RType:    DNSType(dnstype),
 	}
 
 	if rdata != nil {
-		evnt.Data = C.GoBytes(rdata, C.int(rsize))
+		evnt.RData = C.GoBytes(rdata, C.int(rsize))
 	}
 
 	if evnt.Event == BrowserFailure {

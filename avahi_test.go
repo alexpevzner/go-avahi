@@ -68,7 +68,7 @@ func addServiceBrowser(cases *[]reflect.SelectCase,
 		clnt,
 		evnt.IfIndex,
 		evnt.Protocol,
-		evnt.Type,
+		evnt.SvcType,
 		evnt.Domain,
 		LookupUseMulticast)
 
@@ -96,7 +96,7 @@ func addServiceResolver(cases *[]reflect.SelectCase,
 		clnt,
 		evnt.IfIndex,
 		evnt.Protocol,
-		evnt.InstanceName, evnt.Type, evnt.Domain,
+		evnt.InstanceName, evnt.SvcType, evnt.Domain,
 		evnt.Protocol,
 		LookupUseMulticast)
 
@@ -185,7 +185,7 @@ func TestAvahi(t *testing.T) {
 			IfIndex:      loopback,
 			Protocol:     ProtocolUnspec,
 			InstanceName: instancename,
-			Type:         svctype,
+			SvcType:      svctype,
 			Domain:       "",
 			Hostname:     "",
 			Port:         0,
@@ -316,8 +316,8 @@ func TestAvahi(t *testing.T) {
 	}
 
 	for _, svc := range services {
-		expectServiceTypeBrowser[svc.Type] = true
-		expectServiceBrowser[svc.Type] = true
+		expectServiceTypeBrowser[svc.SvcType] = true
+		expectServiceBrowser[svc.SvcType] = true
 		expectServiceResolver[svc.InstanceName] = true
 	}
 
@@ -354,7 +354,7 @@ func TestAvahi(t *testing.T) {
 					continue
 				}
 
-				n := evnt.Type
+				n := evnt.SvcType
 				if expectServiceTypeBrowser[n] {
 					delete(expectServiceTypeBrowser, n)
 					err = addServiceBrowser(&cases,
@@ -372,7 +372,7 @@ func TestAvahi(t *testing.T) {
 					continue
 				}
 
-				n := evnt.Type
+				n := evnt.SvcType
 				if expectServiceBrowser[n] {
 					delete(expectServiceBrowser, n)
 					err = addServiceResolver(&cases,

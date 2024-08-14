@@ -50,7 +50,7 @@ type ServiceTypeBrowserEvent struct {
 	Protocol Protocol          // Network protocol
 	Err      ErrCode           // In a case of BrowserFailure
 	Flags    LookupResultFlags // Lookup flags
-	Type     string            // Service type
+	SvcType  string            // Service type
 	Domain   string            // Service domain
 }
 
@@ -184,7 +184,7 @@ func serviceTypeBrowserCallback(
 		IfIndex:  IfIndex(ifindex),
 		Protocol: Protocol(proto),
 		Flags:    LookupResultFlags(flags),
-		Type:     C.GoString(svctype),
+		SvcType:  C.GoString(svctype),
 		Domain:   C.GoString(domain),
 	}
 

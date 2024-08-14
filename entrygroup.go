@@ -60,7 +60,7 @@ type EntryGroupServiceIdent struct {
 	IfIndex      IfIndex  // Network interface index
 	Protocol     Protocol // Publishing network protocol
 	InstanceName string   // Service instance name
-	Type         string   // Service type
+	SvcType      string   // Service type
 	Domain       string   // Service domain (use "" for default)
 }
 
@@ -69,7 +69,7 @@ type EntryGroupService struct {
 	IfIndex      IfIndex  // Network interface index
 	Protocol     Protocol // Publishing network protocol
 	InstanceName string   // Service instance name
-	Type         string   // Service type
+	SvcType      string   // Service type
 	Domain       string   // Service domain (use "" for default)
 	Hostname     string   // Host name (use "" for default)
 	Port         int      // IP port
@@ -90,10 +90,10 @@ type EntryGroupRecord struct {
 	IfIndex  IfIndex       // Network interface index
 	Protocol Protocol      // Publishing network protocol
 	Name     string        // Record name
-	Class    DNSClass      // Record DNS class
-	Type     DNSType       // Record DNS type
+	RClass   DNSClass      // Record DNS class
+	RType    DNSType       // Record DNS type
 	TTL      time.Duration // DNS TTL, rounded to seconds and must fit int32
-	Data     []byte        // Record data
+	RData    []byte        // Record data
 }
 
 // NewEntryGroup creates a new [EntryGroup].
@@ -205,7 +205,7 @@ func (egrp *EntryGroup) AddService(
 	cinstancename := C.CString(svc.InstanceName)
 	defer C.free(unsafe.Pointer(cinstancename))
 
-	ctype := C.CString(svc.Type)
+	ctype := C.CString(svc.SvcType)
 	defer C.free(unsafe.Pointer(ctype))
 
 	var cdomain *C.char
@@ -263,7 +263,7 @@ func (egrp *EntryGroup) AddServiceSubtype(
 	cinstancename := C.CString(svcid.InstanceName)
 	defer C.free(unsafe.Pointer(cinstancename))
 
-	ctype := C.CString(svcid.Type)
+	ctype := C.CString(svcid.SvcType)
 	defer C.free(unsafe.Pointer(ctype))
 
 	var cdomain *C.char
@@ -309,7 +309,7 @@ func (egrp *EntryGroup) UpdateServiceTxt(
 	cinstancename := C.CString(svcid.InstanceName)
 	defer C.free(unsafe.Pointer(cinstancename))
 
-	ctype := C.CString(svcid.Type)
+	ctype := C.CString(svcid.SvcType)
 	defer C.free(unsafe.Pointer(ctype))
 
 	var cdomain *C.char
@@ -403,8 +403,8 @@ func (egrp *EntryGroup) AddRecord(
 	defer C.free(unsafe.Pointer(cname))
 
 	// Convert record data from Go to C
-	csize := C.size_t(len(rec.Data))
-	cdata := C.CBytes(rec.Data)
+	csize := C.size_t(len(rec.RData))
+	cdata := C.CBytes(rec.RData)
 	defer C.free(cdata)
 
 	// Call Avahi
@@ -417,8 +417,8 @@ func (egrp *EntryGroup) AddRecord(
 		C.AvahiProtocol(rec.Protocol),
 		C.AvahiPublishFlags(flags),
 		cname,
-		C.uint16_t(rec.Class),
-		C.uint16_t(rec.Type),
+		C.uint16_t(rec.RClass),
+		C.uint16_t(rec.RType),
 		cttl,
 		cdata,
 		csize,

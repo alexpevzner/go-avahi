@@ -55,7 +55,7 @@ type ServiceResolverEvent struct {
 	Err          ErrCode           // In a case of ResolverFailure
 	Flags        LookupResultFlags // Lookup flags
 	InstanceName string            // Service instance name (mirrored)
-	Type         string            // Service type (mirrored)
+	SvcType      string            // Service type (mirrored)
 	Domain       string            // Service domain (mirrored)
 	Hostname     string            // Service hostname (resolved)
 	AddrPort     netip.AddrPort    // Service IP address:port (resolved)
@@ -232,7 +232,7 @@ func serviceResolverCallback(
 		Protocol:     Protocol(proto),
 		Flags:        LookupResultFlags(flags),
 		InstanceName: C.GoString(name),
-		Type:         C.GoString(svctype),
+		SvcType:      C.GoString(svctype),
 		Domain:       C.GoString(domain),
 		Hostname:     C.GoString(hostname),
 		AddrPort:     addr,
