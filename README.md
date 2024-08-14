@@ -198,4 +198,4 @@ func main() {
 ```
 
 <!-- vim:ts=8:sw=4:et:textwidth=72
--->https://godoc.org/github.com/alexpevzner/go-avahi
+-->
