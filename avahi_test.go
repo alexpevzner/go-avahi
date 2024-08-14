@@ -155,7 +155,7 @@ func TestAvahi(t *testing.T) {
 	svctype := "_avahi-test._tcp"
 
 	services := []*EntryGroupService{
-		&EntryGroupService{
+		{
 			IfIndex:      loopback,
 			Protocol:     ProtocolUnspec,
 			InstanceName: instancename,
