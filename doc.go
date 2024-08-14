@@ -112,12 +112,12 @@ Record type is more important, as many record types are being used.
 We will not attempt to list them all, the most important for as are
 the following:
 
-	A	- these records contains one or more IPv4 addresses
-	AAAA	- these records contains one or more IPv6 addresses
-	PTR	- the pointer record. They point to some other domain name
-	SRV	- service descriptor
-	TXT	- contains a lot of additional information, represented
-		  as a list of key=value textual pairs.
+	A       - these records contains one or more IPv4 addresses
+	AAAA    - these records contains one or more IPv6 addresses
+	PTR     - the pointer record. They point to some other domain name
+	SRV     - service descriptor
+	TXT     - contains a lot of additional information, represented
+	          as a list of key=value textual pairs.
 
 Once we have a record name and type, we can query a record value.
 Interpretation of this value depends on a record type.
@@ -132,11 +132,11 @@ and [mcdig] will return the following answer (shortened):
 
 	$ mcdig _services._dns-sd._udp.local ptr
 	;; ANSWER SECTION:
-	_services._dns-sd._udp.local.	4500	IN	PTR	_http._tcp.local.
-	_services._dns-sd._udp.local.	4500	IN	PTR	_https._tcp.local.
-	_services._dns-sd._udp.local.	4500	IN	PTR	_ipp._tcp.local.
-	_services._dns-sd._udp.local.	4500	IN	PTR	_ipps._tcp.local.
-	_services._dns-sd._udp.local.	4500	IN	PTR	_printer._tcp.local.
+	_services._dns-sd._udp.local.   4500    IN      PTR     _http._tcp.local.
+	_services._dns-sd._udp.local.   4500    IN      PTR     _https._tcp.local.
+	_services._dns-sd._udp.local.   4500    IN      PTR     _ipp._tcp.local.
+	_services._dns-sd._udp.local.   4500    IN      PTR     _ipps._tcp.local.
+	_services._dns-sd._udp.local.   4500    IN      PTR     _printer._tcp.local.
 
 This is the same list as avahi-browse -a returns, and programmatically
 it can be obtained, using the [ServiceTypeBrowser] object.
@@ -154,7 +154,7 @@ Now, we are only interested in the IPP printers, so:
 
 	$ mcdig _ipp._tcp.local. ptr
 	;; ANSWER SECTION:
-	_ipp._tcp.local.	4500	IN	PTR	Kyocera\ ECOSYS\ M2040dn._ipp._tcp.local.
+	_ipp._tcp.local.   4500    IN     PTR     Kyocera\ ECOSYS\ M2040dn._ipp._tcp.local.
 
 Now we have a so called service instance name, "Kyocera ECOSYS M2040dn".
 Please notice, unlike classical DNS, MDNS labels may contain spaces (and
@@ -169,9 +169,9 @@ The same list will be returned by the avahi-browse _ipp._tcp command
 Now we need to know a bit more about the device, so the next query is:
 
 	$ mcdig Kyocera\ ECOSYS\ M2040dn._ipp._tcp.local. any
-	Kyocera\ ECOSYS\ M2040dn._ipp._tcp.local.	120	IN	SRV	0 0 631 KM7B6A91.local.
-	KM7B6A91.local.					120	IN	A	192.168.1.102
-	KM7B6A91.local.					120	IN	AAAA	fe80::217:c8ff:fe7b:6a91
+	Kyocera\ ECOSYS\ M2040dn._ipp._tcp.local.   120	IN     SRV     0 0 631 KM7B6A91.local.
+	KM7B6A91.local.                             120	IN     A       192.168.1.102
+	KM7B6A91.local.                             120	IN     AAAA    fe80::217:c8ff:fe7b:6a91
 
 The response is really huge and significantly shortened here. The TXT
 record is omitted at all, as it really large.
@@ -193,11 +193,11 @@ And finally, we can lookup IP address by hostname and hostname by IP address:
 
 	$ mcdig KM7B6A91.local. a
 	;; ANSWER SECTION:
-	KM7B6A91.local.			120	IN	A	192.168.1.102
+	KM7B6A91.local.                120  IN    A       192.168.1.102
 
 	$ mcdig 102.1.168.192.in-addr.arpa ptr
 	;; ANSWER SECTION:
-	102.1.168.192.in-addr.arpa.	120	IN	PTR	KM7B6A91.local.
+	102.1.168.192.in-addr.arpa.    120  IN    PTR     KM7B6A91.local.
 
 It corresponds to avahi commands "avahi-resolve-host-name KM7B6A91.local" and
 "avahi-resolve-address 192.168.1.102".
@@ -378,19 +378,19 @@ query for addresses that match the transport protocol.
 
 It can be summarized by the following table:
 
-	proto		addrproto	transport	query for
+	proto           addrproto       transport       query for
 
-	ProtocolIP4	ProtocolIP4	IP4		IP4
-	ProtocolIP4	ProtocolIP6	IP4		IP6
-	ProtocolIP4	ProtocolUnspec	IP4		IP4
+	ProtocolIP4     ProtocolIP4     IP4             IP4
+	ProtocolIP4     ProtocolIP6     IP4		IP6
+	ProtocolIP4     ProtocolUnspec  IP4             IP4
 
-	ProtocolIP6	ProtocolIP4	IP6		IP4
-	ProtocolIP6	ProtocolIP6	IP6		IP6
-	ProtocolIP6	ProtocolUnspec	IP6		IP6
+	ProtocolIP6     ProtocolIP4     IP6             IP4
+	ProtocolIP6     ProtocolIP6     IP6             IP6
+	ProtocolIP6     ProtocolUnspec  IP6             IP6
 
-	ProtocolUnspec	ProtocolIP4	IP6		IP4
-	ProtocolUnspec	ProtocolIP6	IP6		IP6
-	ProtocolUnspec	ProtocolUnspec	IP6		IP6
+	ProtocolUnspec  ProtocolIP4     IP6             IP4
+	ProtocolUnspec  ProtocolIP6     IP6             IP6
+	ProtocolUnspec  ProtocolUnspec  IP6             IP6
 
 By default the Avahi daemon publishes both IP4 and IP6 addresses when
 queried over IP4, but only IP6 addresses, when queried over IP6. This
