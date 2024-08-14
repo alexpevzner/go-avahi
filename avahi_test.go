@@ -182,15 +182,13 @@ func TestAvahi(t *testing.T) {
 
 	services := []*EntryGroupService{
 		&EntryGroupService{
-			EntryGroupServiceIdent: EntryGroupServiceIdent{
-				IfIndex:      loopback,
-				Protocol:     ProtocolUnspec,
-				InstanceName: instancename,
-				Type:         svctype,
-				Domain:       "",
-			},
-			Hostname: "",
-			Port:     0,
+			IfIndex:      loopback,
+			Protocol:     ProtocolUnspec,
+			InstanceName: instancename,
+			Type:         svctype,
+			Domain:       "",
+			Hostname:     "",
+			Port:         0,
 			Txt: []string{
 				"foo=bar",
 			},

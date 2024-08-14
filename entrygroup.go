@@ -56,12 +56,6 @@ type EntryGroupEvent struct {
 // in the EntryGroup with the same InstanceName and difference in other
 // parameters (in particular, you can't define per-interface or
 // per-protocol distinct entries).
-//
-// It is used as a part of [EntryGroupService] for service
-// registration and also as an standalone parameter that identifies
-// a service for modification of existent services entries with
-// [EntryGroup.AddServiceSubtype] and [EntryGroup.UpdateServiceTxt]
-// functions.
 type EntryGroupServiceIdent struct {
 	IfIndex      IfIndex  // Network interface index
 	Protocol     Protocol // Publishing network protocol
@@ -72,10 +66,14 @@ type EntryGroupServiceIdent struct {
 
 // EntryGroupService represents a service registration.
 type EntryGroupService struct {
-	EntryGroupServiceIdent          // Service identification
-	Hostname               string   // Host name (use "" for default)
-	Port                   int      // IP port
-	Txt                    []string // TXT record ("key=value"...)
+	IfIndex      IfIndex  // Network interface index
+	Protocol     Protocol // Publishing network protocol
+	InstanceName string   // Service instance name
+	Type         string   // Service type
+	Domain       string   // Service domain (use "" for default)
+	Hostname     string   // Host name (use "" for default)
+	Port         int      // IP port
+	Txt          []string // TXT record ("key=value"...)
 }
 
 // EntryGroupAddress represents a host address registration.
