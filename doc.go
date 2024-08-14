@@ -13,7 +13,8 @@ Package avahi provides a fairly complete CGo binding for [Avahi] client.
 Avahi is the standard implementation of Multicast DNS and DNS-SD for Linux, and
 likely for some BSD systems as well. This technology is essential for automatic
 network configuration, service discovery on local networks, and driverless
-printing and scanning.
+printing and scanning. It also can be useful for the peer services discovery
+in a cloud.
 
 Please notice, there is an alternative Avahi binding for Go:
 
