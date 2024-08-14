@@ -75,16 +75,16 @@ func (p *Poller) Poll(ctx context.Context) (any, error) {
 		p.lock.Unlock()
 
 		// Wait for an event
-		choosen, recv, ok := reflect.Select(sources)
+		chosen, recv, ok := reflect.Select(sources)
 		switch {
-		case choosen == 0:
+		case chosen == 0:
 			// Recv from the Context's channel. Just do nothing,
 			// the loop condition will terminate the loop
 
 		case !ok:
 			// Recv from the closed channel. Remove the source
 			// and retry.
-			p.delSource(sources[choosen].Chan)
+			p.delSource(sources[chosen].Chan)
 
 		default:
 			// We have a new event
