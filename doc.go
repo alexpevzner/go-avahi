@@ -406,6 +406,8 @@ If this flag is in use, the following changes will occur:
 when working with many instances of Browsers and Resolvers (the typical
 case for Avahi programming).
 
+Poller is not a part of the native Avahi API and added here for convenience.
+
 Poller allows to "connect" many event sources to the single object
 and use it's [Poller.Poll] methods to gather events from all the
 connected objects.
