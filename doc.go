@@ -400,6 +400,18 @@ If this flag is in use, the following changes will occur:
     default [ProtocolIP6], to be consistent with other Avahi API
     (see section "IP4 vs IP6" for details).
 
+# The Poller
+
+[Poller] is the helper object that allows to simplify the event loop
+when working with many instances of Browsers and Resolvers (the typical
+case for Avahi programming).
+
+Poller allows to "connect" many event sources to the single object
+and use it's [Poller.Poll] methods to gather events from all the
+connected objects.
+
+See project's README.md for the usage example.
+
 [IPP over USB]: https://www.usb.org/document-library/ipp-protocol-10
 [ipp-usb]: https://github.com/OpenPrinting/ipp-usb
 [mcdig]: https://github.com/alexpevzner/mcdig
