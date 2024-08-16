@@ -47,8 +47,8 @@ type ServiceBrowser struct {
 // [ServiceBrowser].
 type ServiceBrowserEvent struct {
 	Event        BrowserEvent      // Event code
-	IfIndex      IfIndex           // Network interface index
-	Protocol     Protocol          // Network protocol
+	IfIdx        IfIndex           // Network interface index
+	Proto        Protocol          // Network protocol
 	Err          ErrCode           // In a case of BrowserFailure
 	Flags        LookupResultFlags // Lookup flags
 	InstanceName string            // Service instance name
@@ -71,7 +71,7 @@ type ServiceBrowserEvent struct {
 //
 // Function parameters:
 //   - clnt is the pointer to [Client]
-//   - ifindex is the network interface index. Use [IfIndexUnspec]
+//   - ifidx is the network interface index. Use [IfIndexUnspec]
 //     to monitor all interfaces.
 //   - proto is the IP4/IP6 protocol, used as transport for queries. If
 //     set to [ProtocolUnspec], both protocols will be used.
@@ -85,7 +85,7 @@ type ServiceBrowserEvent struct {
 // function call.
 func NewServiceBrowser(
 	clnt *Client,
-	ifindex IfIndex,
+	ifidx IfIndex,
 	proto Protocol,
 	svctype, domain string,
 	flags LookupFlags) (*ServiceBrowser, error) {
@@ -111,7 +111,7 @@ func NewServiceBrowser(
 
 	browser.avahiBrowser = C.avahi_service_browser_new(
 		avahiClient,
-		C.AvahiIfIndex(ifindex),
+		C.AvahiIfIndex(ifidx),
 		C.AvahiProtocol(proto),
 		csvctype, cdomain,
 		C.AvahiLookupFlags(flags),
@@ -175,7 +175,7 @@ func (browser *ServiceBrowser) Close() {
 //export serviceBrowserCallback
 func serviceBrowserCallback(
 	b *C.AvahiServiceBrowser,
-	ifindex C.AvahiIfIndex,
+	ifidx C.AvahiIfIndex,
 	proto C.AvahiProtocol,
 	event C.AvahiBrowserEvent,
 	instname, svctype, domain *C.char,
@@ -186,8 +186,8 @@ func serviceBrowserCallback(
 
 	evnt := &ServiceBrowserEvent{
 		Event:        BrowserEvent(event),
-		IfIndex:      IfIndex(ifindex),
-		Protocol:     Protocol(proto),
+		IfIdx:        IfIndex(ifidx),
+		Proto:        Protocol(proto),
 		Flags:        LookupResultFlags(flags),
 		InstanceName: C.GoString(instname),
 		SvcType:      C.GoString(svctype),

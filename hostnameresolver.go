@@ -44,8 +44,8 @@ type HostNameResolver struct {
 // [HostNameResolver].
 type HostNameResolverEvent struct {
 	Event    ResolverEvent     // Event code
-	IfIndex  IfIndex           // Network interface index
-	Protocol Protocol          // Network protocol
+	IfIdx    IfIndex           // Network interface index
+	Proto    Protocol          // Network protocol
 	Err      ErrCode           // In a case of ResolverFailure
 	Flags    LookupResultFlags // Lookup flags
 	Hostname string            // Hostname (mirrored)
@@ -66,7 +66,7 @@ type HostNameResolverEvent struct {
 //
 // Function parameters:
 //   - clnt is the pointer to [Client]
-//   - ifindex is the network interface index. Use [IfIndexUnspec]
+//   - ifidx is the network interface index. Use [IfIndexUnspec]
 //     to specify all interfaces.
 //   - proto is the IP4/IP6 protocol, used as transport for queries. If
 //     set to [ProtocolUnspec], both protocols will be used.
@@ -77,7 +77,7 @@ type HostNameResolverEvent struct {
 // function call.
 func NewHostNameResolver(
 	clnt *Client,
-	ifindex IfIndex,
+	ifidx IfIndex,
 	proto Protocol,
 	hostname string,
 	addrproto Protocol,
@@ -92,7 +92,7 @@ func NewHostNameResolver(
 	//
 	// Only if all of the following is true:
 	//   1. ClientLoopbackWorkarounds enabled
-	//   2. ifindex is loopback
+	//   2. ifidx is loopback
 	//   3. hostname is localhost
 	//   4. LookupUseMulticast query
 	//   5. proto is valid
@@ -106,7 +106,7 @@ func NewHostNameResolver(
 				return nil, err
 			}
 
-			if ifindex == loopback {
+			if ifidx == loopback {
 				// Avahi can't resolve "localhost".
 				// So just do its work for it.
 				flags := LookupResultCached |
@@ -128,8 +128,8 @@ func NewHostNameResolver(
 
 				evnt := &HostNameResolverEvent{
 					Event:    ResolverFound,
-					IfIndex:  ifindex,
-					Protocol: proto,
+					IfIdx:    ifidx,
+					Proto:    proto,
 					Flags:    flags,
 					Hostname: hostname,
 					Addr:     addr,
@@ -153,7 +153,7 @@ func NewHostNameResolver(
 
 	resolver.avahiResolver = C.avahi_host_name_resolver_new(
 		avahiClient,
-		C.AvahiIfIndex(ifindex),
+		C.AvahiIfIndex(ifidx),
 		C.AvahiProtocol(proto),
 		chostname,
 		C.AvahiProtocol(addrproto),
@@ -220,7 +220,7 @@ func (resolver *HostNameResolver) Close() {
 //export hostnameResolverCallback
 func hostnameResolverCallback(
 	r *C.AvahiHostNameResolver,
-	ifindex C.AvahiIfIndex,
+	ifidx C.AvahiIfIndex,
 	proto C.AvahiProtocol,
 	event C.AvahiResolverEvent,
 	hostname *C.char,
@@ -234,8 +234,8 @@ func hostnameResolverCallback(
 	ip := decodeAvahiAddress(caddr)
 	evnt := &HostNameResolverEvent{
 		Event:    ResolverEvent(event),
-		IfIndex:  IfIndex(ifindex),
-		Protocol: Protocol(proto),
+		IfIdx:    IfIndex(ifidx),
+		Proto:    Protocol(proto),
 		Flags:    LookupResultFlags(flags),
 		Hostname: C.GoString(hostname),
 		Addr:     ip,

@@ -44,8 +44,8 @@ type AddressResolver struct {
 // [AddressResolver].
 type AddressResolverEvent struct {
 	Event    ResolverEvent     // Event code
-	IfIndex  IfIndex           // Network interface index
-	Protocol Protocol          // Network protocol
+	IfIdx    IfIndex           // Network interface index
+	Proto    Protocol          // Network protocol
 	Err      ErrCode           // In a case of ResolverFailure
 	Flags    LookupResultFlags // Lookup flags
 	Addr     netip.Addr        // IP address (mirrored)
@@ -61,7 +61,7 @@ type AddressResolverEvent struct {
 //
 // Function parameters:
 //   - clnt is the pointer to [Client]
-//   - ifindex is the network interface index. Use [IfIndexUnspec]
+//   - ifidx is the network interface index. Use [IfIndexUnspec]
 //     to specify all interfaces.
 //   - proto is the IP4/IP6 protocol, used as transport for queries. If
 //     set to [ProtocolUnspec], both protocols will be used.
@@ -72,7 +72,7 @@ type AddressResolverEvent struct {
 // function call.
 func NewAddressResolver(
 	clnt *Client,
-	ifindex IfIndex,
+	ifidx IfIndex,
 	proto Protocol,
 	addr netip.Addr,
 	flags LookupFlags) (*AddressResolver, error) {
@@ -94,7 +94,7 @@ func NewAddressResolver(
 
 	resolver.avahiResolver = C.avahi_address_resolver_new(
 		avahiClient,
-		C.AvahiIfIndex(ifindex),
+		C.AvahiIfIndex(ifidx),
 		C.AvahiProtocol(proto),
 		&caddr,
 		C.AvahiLookupFlags(flags),
@@ -158,7 +158,7 @@ func (resolver *AddressResolver) Close() {
 //export addressResolverCallback
 func addressResolverCallback(
 	r *C.AvahiAddressResolver,
-	ifindex C.AvahiIfIndex,
+	ifidx C.AvahiIfIndex,
 	proto C.AvahiProtocol,
 	event C.AvahiResolverEvent,
 	caddr *C.AvahiAddress,
@@ -173,8 +173,8 @@ func addressResolverCallback(
 	ip := decodeAvahiAddress(caddr)
 	evnt := &AddressResolverEvent{
 		Event:    ResolverEvent(event),
-		IfIndex:  IfIndex(ifindex),
-		Protocol: Protocol(proto),
+		IfIdx:    IfIndex(ifidx),
+		Proto:    Protocol(proto),
 		Flags:    LookupResultFlags(flags),
 		Hostname: C.GoString(hostname),
 		Addr:     ip,

@@ -58,8 +58,8 @@ func addServiceBrowser(poller *Poller,
 
 	browser, err := NewServiceBrowser(
 		clnt,
-		evnt.IfIndex,
-		evnt.Protocol,
+		evnt.IfIdx,
+		evnt.Proto,
 		evnt.SvcType,
 		evnt.Domain,
 		LookupUseMulticast)
@@ -81,10 +81,10 @@ func addServiceResolver(poller *Poller,
 
 	resolver, err := NewServiceResolver(
 		clnt,
-		evnt.IfIndex,
-		evnt.Protocol,
+		evnt.IfIdx,
+		evnt.Proto,
 		evnt.InstanceName, evnt.SvcType, evnt.Domain,
-		evnt.Protocol,
+		evnt.Proto,
 		LookupUseMulticast)
 
 	if err != nil {
@@ -106,8 +106,8 @@ func addAddressResolver(poller *Poller,
 
 	resolver, err := NewAddressResolver(
 		clnt,
-		evnt.IfIndex,
-		evnt.Protocol,
+		evnt.IfIdx,
+		evnt.Proto,
 		addr,
 		LookupUseMulticast)
 
@@ -128,10 +128,10 @@ func addHostNameResolver(poller *Poller,
 
 	resolver, err := NewHostNameResolver(
 		clnt,
-		evnt.IfIndex,
-		evnt.Protocol,
+		evnt.IfIdx,
+		evnt.Proto,
 		evnt.FQDN(),
-		evnt.Protocol,
+		evnt.Proto,
 		LookupUseMulticast)
 
 	if err != nil {
@@ -156,8 +156,8 @@ func TestAvahi(t *testing.T) {
 
 	services := []*EntryGroupService{
 		{
-			IfIndex:      loopback,
-			Protocol:     ProtocolUnspec,
+			IfIdx:        loopback,
+			Proto:        ProtocolUnspec,
 			InstanceName: instancename,
 			SvcType:      svctype,
 			Domain:       "",
@@ -171,8 +171,8 @@ func TestAvahi(t *testing.T) {
 
 	addresses := []*EntryGroupAddress{
 		{
-			IfIndex:  loopback,
-			Protocol: ProtocolUnspec,
+			IfIdx:    loopback,
+			Proto:    ProtocolUnspec,
 			Hostname: hostname,
 			Addr:     netip.MustParseAddr("127.0.0.1"),
 		},
@@ -315,7 +315,7 @@ func TestAvahi(t *testing.T) {
 			t.Logf("%#v", evnt)
 			switch evnt.Event {
 			case BrowserNew:
-				if evnt.IfIndex != loopback {
+				if evnt.IfIdx != loopback {
 					continue
 				}
 
@@ -333,7 +333,7 @@ func TestAvahi(t *testing.T) {
 			t.Logf("%#v", evnt)
 			switch evnt.Event {
 			case BrowserNew:
-				if evnt.IfIndex != loopback {
+				if evnt.IfIdx != loopback {
 					continue
 				}
 
@@ -353,7 +353,7 @@ func TestAvahi(t *testing.T) {
 
 			switch evnt.Event {
 			case ResolverFound:
-				if evnt.IfIndex != loopback {
+				if evnt.IfIdx != loopback {
 					continue
 				}
 
@@ -378,7 +378,7 @@ func TestAvahi(t *testing.T) {
 
 			switch evnt.Event {
 			case ResolverFound:
-				if evnt.IfIndex != loopback {
+				if evnt.IfIdx != loopback {
 					continue
 				}
 
@@ -398,7 +398,7 @@ func TestAvahi(t *testing.T) {
 
 			switch evnt.Event {
 			case ResolverFound:
-				if evnt.IfIndex != loopback {
+				if evnt.IfIdx != loopback {
 					continue
 				}
 

@@ -50,8 +50,8 @@ type ServiceResolver struct {
 // [ServiceResolver].
 type ServiceResolverEvent struct {
 	Event        ResolverEvent     // Event code
-	IfIndex      IfIndex           // Network interface index
-	Protocol     Protocol          // Network protocol
+	IfIdx        IfIndex           // Network interface index
+	Proto        Protocol          // Network protocol
 	Err          ErrCode           // In a case of ResolverFailure
 	Flags        LookupResultFlags // Lookup flags
 	InstanceName string            // Service instance name (mirrored)
@@ -97,7 +97,7 @@ func (evnt *ServiceResolverEvent) FQDN() string {
 //
 // Function parameters:
 //   - clnt is the pointer to [Client]
-//   - ifindex is the network interface index. Use [IfIndexUnspec]
+//   - ifidx is the network interface index. Use [IfIndexUnspec]
 //     to specify all interfaces.
 //   - proto is the IP4/IP6 protocol, used as transport for queries. If
 //     set to [ProtocolUnspec], both protocols will be used.
@@ -115,7 +115,7 @@ func (evnt *ServiceResolverEvent) FQDN() string {
 // function call.
 func NewServiceResolver(
 	clnt *Client,
-	ifindex IfIndex,
+	ifidx IfIndex,
 	proto Protocol,
 	instname, svctype, domain string,
 	addrproto Protocol,
@@ -142,7 +142,7 @@ func NewServiceResolver(
 
 	resolver.avahiResolver = C.avahi_service_resolver_new(
 		avahiClient,
-		C.AvahiIfIndex(ifindex),
+		C.AvahiIfIndex(ifidx),
 		C.AvahiProtocol(proto),
 		cinstname, csvctype, cdomain,
 		C.AvahiProtocol(addrproto),
@@ -205,7 +205,7 @@ func (resolver *ServiceResolver) Close() {
 //export serviceResolverCallback
 func serviceResolverCallback(
 	r *C.AvahiServiceResolver,
-	ifindex C.AvahiIfIndex,
+	ifidx C.AvahiIfIndex,
 	proto C.AvahiProtocol,
 	event C.AvahiResolverEvent,
 	name, svctype, domain, hostname *C.char,
@@ -228,8 +228,8 @@ func serviceResolverCallback(
 	// Generate an event
 	evnt := &ServiceResolverEvent{
 		Event:        ResolverEvent(event),
-		IfIndex:      IfIndex(ifindex),
-		Protocol:     Protocol(proto),
+		IfIdx:        IfIndex(ifidx),
+		Proto:        Protocol(proto),
 		Flags:        LookupResultFlags(flags),
 		InstanceName: C.GoString(name),
 		SvcType:      C.GoString(svctype),

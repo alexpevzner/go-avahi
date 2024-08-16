@@ -57,8 +57,8 @@ type EntryGroupEvent struct {
 // parameters (in particular, you can't define per-interface or
 // per-protocol distinct entries).
 type EntryGroupServiceIdent struct {
-	IfIndex      IfIndex  // Network interface index
-	Protocol     Protocol // Publishing network protocol
+	IfIdx        IfIndex  // Network interface index
+	Proto        Protocol // Publishing network protocol
 	InstanceName string   // Service instance name
 	SvcType      string   // Service type
 	Domain       string   // Service domain (use "" for default)
@@ -66,8 +66,8 @@ type EntryGroupServiceIdent struct {
 
 // EntryGroupService represents a service registration.
 type EntryGroupService struct {
-	IfIndex      IfIndex  // Network interface index
-	Protocol     Protocol // Publishing network protocol
+	IfIdx        IfIndex  // Network interface index
+	Proto        Protocol // Publishing network protocol
 	InstanceName string   // Service instance name
 	SvcType      string   // Service type
 	Domain       string   // Service domain (use "" for default)
@@ -78,8 +78,8 @@ type EntryGroupService struct {
 
 // EntryGroupAddress represents a host address registration.
 type EntryGroupAddress struct {
-	IfIndex  IfIndex    // Network interface index
-	Protocol Protocol   // Publishing network protocol
+	IfIdx    IfIndex    // Network interface index
+	Proto    Protocol   // Publishing network protocol
 	Hostname string     // Host name (use "" for default)
 	Addr     netip.Addr // IP address
 }
@@ -87,13 +87,13 @@ type EntryGroupAddress struct {
 // EntryGroupRecord represents a raw DNS record that can be added
 // to the EntryGroup.
 type EntryGroupRecord struct {
-	IfIndex  IfIndex       // Network interface index
-	Protocol Protocol      // Publishing network protocol
-	Name     string        // Record name
-	RClass   DNSClass      // Record DNS class
-	RType    DNSType       // Record DNS type
-	TTL      time.Duration // DNS TTL, rounded to seconds and must fit int32
-	RData    []byte        // Record data
+	IfIdx  IfIndex       // Network interface index
+	Proto  Protocol      // Publishing network protocol
+	Name   string        // Record name
+	RClass DNSClass      // Record DNS class
+	RType  DNSType       // Record DNS type
+	TTL    time.Duration // DNS TTL, rounded to seconds and must fit int32
+	RData  []byte        // Record data
 }
 
 // NewEntryGroup creates a new [EntryGroup].
@@ -233,8 +233,8 @@ func (egrp *EntryGroup) AddService(
 
 	rc := C.avahi_entry_group_add_service_strlst(
 		egrp.avahiEntryGroup,
-		C.AvahiIfIndex(svc.IfIndex),
-		C.AvahiProtocol(svc.Protocol),
+		C.AvahiIfIndex(svc.IfIdx),
+		C.AvahiProtocol(svc.Proto),
 		C.AvahiPublishFlags(flags),
 		cinstancename,
 		ctype,
@@ -281,8 +281,8 @@ func (egrp *EntryGroup) AddServiceSubtype(
 
 	rc := C.avahi_entry_group_add_service_subtype(
 		egrp.avahiEntryGroup,
-		C.AvahiIfIndex(svcid.IfIndex),
-		C.AvahiProtocol(svcid.Protocol),
+		C.AvahiIfIndex(svcid.IfIdx),
+		C.AvahiProtocol(svcid.Proto),
 		C.AvahiPublishFlags(flags),
 		cinstancename,
 		ctype,
@@ -331,8 +331,8 @@ func (egrp *EntryGroup) UpdateServiceTxt(
 
 	rc := C.avahi_entry_group_update_service_txt_strlst(
 		egrp.avahiEntryGroup,
-		C.AvahiIfIndex(svcid.IfIndex),
-		C.AvahiProtocol(svcid.Protocol),
+		C.AvahiIfIndex(svcid.IfIdx),
+		C.AvahiProtocol(svcid.Proto),
 		C.AvahiPublishFlags(flags),
 		cinstancename,
 		ctype,
@@ -370,8 +370,8 @@ func (egrp *EntryGroup) AddAddress(
 
 	rc := C.avahi_entry_group_add_address(
 		egrp.avahiEntryGroup,
-		C.AvahiIfIndex(rec.IfIndex),
-		C.AvahiProtocol(rec.Protocol),
+		C.AvahiIfIndex(rec.IfIdx),
+		C.AvahiProtocol(rec.Proto),
 		C.AvahiPublishFlags(flags),
 		chostname,
 		&caddr,
@@ -413,8 +413,8 @@ func (egrp *EntryGroup) AddRecord(
 
 	rc := C.avahi_entry_group_add_record(
 		egrp.avahiEntryGroup,
-		C.AvahiIfIndex(rec.IfIndex),
-		C.AvahiProtocol(rec.Protocol),
+		C.AvahiIfIndex(rec.IfIdx),
+		C.AvahiProtocol(rec.Proto),
 		C.AvahiPublishFlags(flags),
 		cname,
 		C.uint16_t(rec.RClass),
