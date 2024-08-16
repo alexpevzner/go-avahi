@@ -23,7 +23,7 @@ type PublishFlags int
 const (
 	// RRset is intended to be unique
 	PublishUnique PublishFlags = C.AVAHI_PUBLISH_UNIQUE
-	// hough the RRset is intended to be unique no probes shall be sent
+	// Though the RRset is intended to be unique no probes shall be sent
 	PublishNoProbe PublishFlags = C.AVAHI_PUBLISH_NO_PROBE
 	// Do not announce this RR to other hosts
 	PublishNoAnnounce PublishFlags = C.AVAHI_PUBLISH_NO_ANNOUNCE
