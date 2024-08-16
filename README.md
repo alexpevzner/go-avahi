@@ -174,8 +174,8 @@ func main() {
 			case avahi.BrowserNew:
 				resolver, err := avahi.NewServiceResolver(
 					clnt,
-					evnt.IfIndex,
-					evnt.Protocol,
+					evnt.IfIdx,
+					evnt.Proto,
 					evnt.InstanceName,
 					evnt.SvcType,
 					evnt.Domain,
