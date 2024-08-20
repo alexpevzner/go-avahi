@@ -128,28 +128,67 @@ The same list will be returned by the avahi-browse _ipp._tcp command
 (please notice, the .local suffix is implied here) or using the
 [ServiceBrowser] object.
 
-Now we need to know a bit more about the device, so the next query is:
+Now we need to know a bit more about the device, so the next two queries
+are:
 
-	$ mcdig Kyocera\ ECOSYS\ M2040dn._ipp._tcp.local. any
-	Kyocera\ ECOSYS\ M2040dn._ipp._tcp.local.   120	IN     SRV     0 0 631 KM7B6A91.local.
-	KM7B6A91.local.                             120	IN     A       192.168.1.102
-	KM7B6A91.local.                             120	IN     AAAA    fe80::217:c8ff:fe7b:6a91
+	$ mcdig Kyocera\ ECOSYS\ M2040dn._ipp._tcp.local. srv
+	Kyocera\ ECOSYS\ M2040dn._ipp._tcp.local.   120    IN    SRV    0 0 631 KM7B6A91.local.
+
+	$ mcdig Kyocera\ ECOSYS\ M2040dn._ipp._tcp.local. txt
+	Kyocera\ ECOSYS\ M2040dn._ipp._tcp.local.   4500   IN    TXT    "txtvers=1" "pdl=image/pwg-raster,..." ...
+
+It brings us the following information:
+
+  - SRV record contains a hostname (which is not the same as the
+    instance name, and often is not as friendly and human-readable)
+    and IP port (631, the third parameter in the SRV RR)
+
+  - TXT record contains a lot of "key=value" pairs which describe
+    many characteristics of device.
+
+And the final step is to obtain device's IP addresses. Here we need the
+hostname, obtained at the previous steps:
+
+	$ mcdig KM7B6A91.local. a
+	KM7B6A91.local.	120     IN      A       192.168.1.102
+
+	$ mcdig KM7B6A91.local. aaaa
+	KM7B6A91.local.	120     IN      AAAA    fe80::217:c8ff:fe7b:6a91
 
 The response is really huge and significantly shortened here. The TXT
 record is omitted at all, as it really large.
 
-The important records are:
-  - A and AAAA brings us IP addresses of the device
-  - SRV record gives us a hostname (which is not the same as the
-    instance name, and is not as friendly and human-readable)
-    and IP port (631, the third parameter in the SRV RR)
-  - TXT record, which brings a lot of additional information,
-    like duplex support ("Duplex=T"), root path for the HTTP
-    requests ("rp=ipp/print"; IPP is the HTTP-based protocol),
-    list of supported documents formats and much more.
+So the final picture is following:
+
+	INPUT: "_ipp._tcp.local."                               (the service type)
+	 |
+	 --> Query PTR record
+	      |
+	      --> "Kyocera ECOSYS M2040dn._ipp._tcp.local."     (the instance name)
+	          |
+	          |-> Query SRC record
+	          |    |
+	          |    |-> 631                                  (TCP port)
+	          |    |
+	          |    --> "KM7B6A91.local."                    (the hostname)
+	          |          |
+	          |          |-> Query A record
+	          |          |    |
+	          |          |    --> 192.168.1.102             (IPv4 address)
+	          |          |
+	          |          --> Query AAAA record
+	          |               |
+	          |               --> fe80::217:c8ff:fe7b:6a91  (IPv6 address)
+	          |
+	          -> Query TXT record
+	              |
+	              --> A lot of key=value pairs              (device description)
+
+So a lot of work indeed!
 
 The same information can be obtained programmatically, using the
-[ServiceResolver] object.
+[ServiceResolver] object, and the service resolver actually perform
+all these steps under the hood.
 
 And finally, we can lookup IP address by hostname and hostname by IP address:
 
