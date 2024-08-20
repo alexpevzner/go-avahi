@@ -190,6 +190,7 @@ func main() {
 				delete(wanted, evnt.SvcType)
 
 			case avahi.BrowserFailure:
+				err = evnt.Err
 				checkErr(err, "browse %q", evnt.SvcType)
 			}
 
@@ -207,6 +208,7 @@ func main() {
 				delete(wanted, evnt.InstanceName)
 
 			case avahi.ResolverFailure:
+				err = evnt.Err
 				checkErr(err, "resolve %q", evnt.InstanceName)
 			}
 		}
