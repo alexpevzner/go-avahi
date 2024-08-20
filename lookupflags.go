@@ -19,7 +19,24 @@ import "C"
 // LookupFlags provides some options for lookup functions
 type LookupFlags int
 
-// LookupFlags values
+// LookupFlags values.
+//
+// Please notice, LookupUseWideArea and LookupUseMulticast are
+// mutually exclusive. Each of these flags forces the particular
+// lookup methods, so if both are set, no valid lookup methods
+// remains. The following simple table summarize usage of these
+// flags:
+//
+//	Flags combination                         Meaning
+//
+//	0                                         WAN + Multicast
+//	LookupUseWideArea                         WAN only
+//	LookupUseMulticast                        mDNS only
+//	LookupUseWideArea | LookupUseMulticast    Invalid
+//
+// LookupNoTXT and LookupNoAddress are only meaningful for creating
+// [ServiceResolver] with the [NewServiceResolver] function. Using
+// them for any other purpose may result in [ErrInvalidFlags] error.
 const (
 	// Force lookup via wide area DNS
 	LookupUseWideArea LookupFlags = C.AVAHI_LOOKUP_USE_WIDE_AREA
