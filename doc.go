@@ -120,7 +120,7 @@ Now, we are only interested in the IPP printers, so:
 
 Now we have a so called service instance name, "Kyocera ECOSYS M2040dn".
 Please notice, unlike classical DNS, MDNS labels may contain spaces (and
-virtually any valid UTF-8 characters), but among these labels looks
+virtually any valid UTF-8 characters), but although these labels looks
 like human-readable names, they are network-unique (which is enforced
 by the protocol) and can be used to unambiguously identify the device.
 
