@@ -48,11 +48,11 @@ var clientStateNames = map[ClientState]string{
 	ClientStateConnecting:  "connecting",
 }
 
-// String returns a name of the ClientState.
+// String returns name of the ClientState.
 func (state ClientState) String() string {
 	n := clientStateNames[state]
 	if n == "" {
-		n = fmt.Sprintf("UNKNOWN 0x%4.4x", int(state))
+		n = fmt.Sprintf("UNKNOWN %d", int(state))
 	}
 	return n
 }
