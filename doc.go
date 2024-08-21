@@ -23,7 +23,7 @@ to the original Avahi C API and as transparent, as possible. However,
 the following differences still exist:
   - Events are reported via channels, not via callbacks, as in C
   - AvahiPoll object is not exposed and handled internally
-  - Workaround for Avahi localhost handling bug is provides (for details,
+  - Workaround for Avahi localhost handling bug is provided (for details,
     see "Loopback interface handling and localhost" section above).
 
 # A bit of theory (Multicast DNS and DNS-SD essentials)
@@ -158,7 +158,7 @@ hostname, obtained at the previous steps:
 The response is really huge and significantly shortened here. The TXT
 record is omitted at all, as it really large.
 
-So the final picture is following:
+So the whole picture looks as following:
 
 	INPUT: "_ipp._tcp.local."                               (the service type)
 	 |
