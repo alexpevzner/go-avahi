@@ -9,6 +9,8 @@
 
 package avahi
 
+import "net/netip"
+
 // DNSClass represents a DNS record class. See [RFC1035, 3.2.4.] for details.
 //
 // [RFC1035, 3.2.4.]: https://datatracker.ietf.org/doc/html/rfc1035#section-3.2.4
@@ -45,3 +47,58 @@ const (
 	DNSTypeAAAA  DNSType = 28 // IP6 host address (RFC3596)
 	DNSTypeSRV   DNSType = 33 // Service record (RFC2782)
 )
+
+// DNSDecodeA decodes A type resource record.
+//
+// It returns a real IPv4 (not IPv6-encoded IPv4) address.
+//
+// [RecordBrowserEvent].RData can be used as input.
+// Errors reported by returning zero [netip.Addr]
+func DNSDecodeA(rdata []byte) netip.Addr {
+	var addr netip.Addr
+	if len(rdata) == 4 {
+		addr, _ = netip.AddrFromSlice(rdata)
+		addr = addr.Unmap()
+	}
+	return addr
+}
+
+// DNSDecodeAAAA decodes AAAA type resource record.
+//
+// [RecordBrowserEvent].RData can be used as input.
+// Errors reported by returning zero [netip.Addr]
+func DNSDecodeAAAA(rdata []byte) netip.Addr {
+	var addr netip.Addr
+	if len(rdata) == 16 {
+		addr, _ = netip.AddrFromSlice(rdata)
+	}
+	return addr
+}
+
+// DNSDecodeTXT decodes TXT type resource record.
+//
+// [RecordBrowserEvent].RData can be used as input.
+// Errors reported by returning nil slice.
+func DNSDecodeTXT(rdata []byte) []string {
+	txt := []string{}
+
+	for len(rdata) > 0 {
+		// Extract size of the next string
+		sz := int(rdata[0])
+		rdata = rdata[1:]
+
+		// Size exceeds available data
+		if sz > len(rdata) {
+			return nil
+		}
+
+		// Extract next string. Ignore empty ones.
+		if sz > 0 {
+			s := string(rdata[:sz])
+			rdata = rdata[sz:]
+			txt = append(txt, s)
+		}
+	}
+
+	return txt
+}
