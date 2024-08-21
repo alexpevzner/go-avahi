@@ -49,7 +49,7 @@ var entryGroupStateNames = map[EntryGroupState]string{
 func (state EntryGroupState) String() string {
 	n := entryGroupStateNames[state]
 	if n == "" {
-		n = fmt.Sprintf("UNKNOWN 0x%4.4x", int(state))
+		n = fmt.Sprintf("UNKNOWN %d", int(state))
 	}
 	return n
 }
