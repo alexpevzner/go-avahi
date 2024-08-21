@@ -92,7 +92,7 @@ func (p *Poller) Poll(ctx context.Context) (any, error) {
 		}
 	}
 
-	return nil, nil
+	return nil, ctx.Err()
 }
 
 // AddClient adds [Client] as the event source.
