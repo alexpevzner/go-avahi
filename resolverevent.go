@@ -11,6 +11,7 @@ package avahi
 
 // #include <avahi-client/client.h>
 import "C"
+import "fmt"
 
 // ResolverEvent is the CGo representation of the [AvahiResolverEvent].
 //
@@ -25,3 +26,18 @@ const (
 	// Resolving failed due to some reason.
 	ResolverFailure ResolverEvent = C.AVAHI_RESOLVER_FAILURE
 )
+
+// resolverEventNames contains names for known resolver events.
+var resolverEventNames = map[ResolverEvent]string{
+	ResolverFound:   "ResolverFound",
+	ResolverFailure: "ResolverFailure",
+}
+
+// String returns a name of ResolverEvent
+func (e ResolverEvent) String() string {
+	n := resolverEventNames[e]
+	if n == "" {
+		n = fmt.Sprintf("UNKNOWN %d", int(e))
+	}
+	return n
+}
