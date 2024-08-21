@@ -11,6 +11,7 @@ package avahi
 
 // #include <avahi-client/client.h>
 import "C"
+import "fmt"
 
 // BrowserEvent is the CGo representation of [AvahiBrowserEvent].
 //
@@ -36,3 +37,21 @@ const (
 	// Browsing failed with a error.
 	BrowserFailure BrowserEvent = C.AVAHI_BROWSER_FAILURE
 )
+
+// browserEventNames contains names for known browser events.
+var browserEventNames = map[BrowserEvent]string{
+	BrowserNew:            "BrowserNew",
+	BrowserRemove:         "BrowserRemove",
+	BrowserCacheExhausted: "BrowserCacheExhausted",
+	BrowserAllForNow:      "BrowserAllForNow",
+	BrowserFailure:        "BrowserAllForNow",
+}
+
+// String returns a name of BrowserEvent
+func (e BrowserEvent) String() string {
+	n := browserEventNames[e]
+	if n == "" {
+		n = fmt.Sprintf("UNKNOWN %d", int(e))
+	}
+	return n
+}
