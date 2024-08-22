@@ -102,7 +102,7 @@ func addServiceResolver(poller *Poller,
 func addAddressResolver(poller *Poller,
 	clnt *Client, evnt *ServiceResolverEvent) error {
 
-	addr := evnt.AddrPort.Addr()
+	addr := evnt.Addr
 
 	resolver, err := NewAddressResolver(
 		clnt,
@@ -349,7 +349,7 @@ func TestAvahi(t *testing.T) {
 
 		case *ServiceResolverEvent:
 			t.Logf("%#v", evnt)
-			t.Logf("%s", evnt.AddrPort)
+			t.Logf("%s:%d", evnt.Addr, evnt.Port)
 
 			switch evnt.Event {
 			case ResolverFound:
