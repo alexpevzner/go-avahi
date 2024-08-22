@@ -18,7 +18,7 @@ import (
 func TestDomainFrom(t *testing.T) {
 	type testData struct {
 		labels []string
-		domain Domain
+		domain string
 	}
 
 	tests := []testData{
@@ -49,10 +49,10 @@ func TestDomainFrom(t *testing.T) {
 	}
 }
 
-// TestDomainSplit tests Domain.Split function
+// TestDomainSplit tests DomainSplit function
 func TestDomainSplit(t *testing.T) {
 	type testData struct {
-		domain Domain
+		domain string
 		labels []string
 	}
 
@@ -69,7 +69,7 @@ func TestDomainSplit(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		labels := test.domain.Split()
+		labels := DomainSplit(test.domain)
 		if !reflect.DeepEqual(labels, test.labels) {
 			t.Errorf("%q:\n"+
 				"expected: %q\n"+
@@ -79,10 +79,10 @@ func TestDomainSplit(t *testing.T) {
 	}
 }
 
-// TestDomainEqual tests Domain.Equal function
+// TestDomainEqual tests DomainEqual function
 func TestDomainEqual(t *testing.T) {
 	type testData struct {
-		d1, d2 Domain
+		d1, d2 string
 		equal  bool
 	}
 
@@ -132,7 +132,7 @@ func TestDomainEqual(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		equal := test.d1.Equal(test.d2)
+		equal := DomainEqual(test.d1, test.d2)
 		if equal != test.equal {
 			t.Errorf("%q vs %q:\n"+
 				"expected: %v\n"+
@@ -142,10 +142,10 @@ func TestDomainEqual(t *testing.T) {
 	}
 }
 
-// TestDomainNormalize tests Domain.Normalize function
+// TestDomainNormalize tests DomainNormalize function
 func TestDomainNormalize(t *testing.T) {
 	type testData struct {
-		in, out Domain
+		in, out string
 	}
 
 	tests := []testData{
@@ -164,7 +164,7 @@ func TestDomainNormalize(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		out := test.in.Normalize()
+		out := DomainNormalize(test.in)
 		if out != test.out {
 			t.Errorf("%q:\n"+
 				"expected: %q\n"+

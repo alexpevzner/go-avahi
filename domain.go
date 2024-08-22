@@ -14,26 +14,16 @@ package avahi
 import "C"
 import "unsafe"
 
-// Domain represents a domain name.
-//
-// As Multicast DNS allows domain labels to contain any valid
-// UTF characters, when domain name is constructed from a sequence
-// of labels, the proper escaping is required, so the dot character
-// within a label will not be interpreted as label separator.
-//
-// Note, it affects only local representation of domain names.
-// The wire representation
-type Domain string
-
-// DomainFrom makes a domain string from a sequence of labels.
+// DomainFrom makes a domain name string from a sequence of labels.
 //
 // Labels are properly escaped but overall validity check is not
 // performed (Avahi will do it for us when receive Domain as input).
 //
 // Note, this function is not guaranteed to escape labels exactly
 // as Avahi does, but output is anyway correct.
-func DomainFrom(labels []string) Domain {
+func DomainFrom(labels []string) string {
 	buf := make([]byte, 0, 256)
+
 	for n, label := range labels {
 		if n != 0 {
 			buf = append(buf, '.')
@@ -50,15 +40,15 @@ func DomainFrom(labels []string) Domain {
 		}
 	}
 
-	return Domain(buf)
+	return string(buf)
 }
 
-// Split splits domain name into a sequence of labels.
+// DomainSplit splits domain name into a sequence of labels.
 //
 // In a case of error it returns nil.
-func (d Domain) Split() []string {
+func DomainSplit(d string) []string {
 	// Convert input from Go to C
-	in := C.CString(string(d))
+	in := C.CString(d)
 	defer C.free(unsafe.Pointer(in))
 
 	// Allocate decode buffer. len(d) must be enough.
@@ -81,13 +71,13 @@ func (d Domain) Split() []string {
 	return labels
 }
 
-// Equal reports if two Domain names are equal.
+// DomainEqual reports if two domain names are equal.
 //
 // Note, invalid domain names are never equal to anything
 // else, including itself.
-func (d Domain) Equal(d2 Domain) bool {
-	labels1 := d.Split()
-	labels2 := d2.Split()
+func DomainEqual(d1, d2 string) bool {
+	labels1 := DomainSplit(d1)
+	labels2 := DomainSplit(d2)
 
 	if labels1 == nil || labels2 == nil {
 		return false
@@ -106,9 +96,9 @@ func (d Domain) Equal(d2 Domain) bool {
 	return true
 }
 
-// Normalize normalizes the domain name by removing unneeded escaping.
+// DomainNormalize normalizes the domain name by removing unneeded escaping.
 //
 // In a case of error it returns empty string.
-func (d Domain) Normalize() Domain {
-	return DomainFrom(d.Split())
+func DomainNormalize(d string) string {
+	return DomainFrom(DomainSplit(d))
 }
