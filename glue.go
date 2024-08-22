@@ -92,3 +92,33 @@ func decodeAvahiStringList(ctxt *C.AvahiStringList) []string {
 
 	return txt
 }
+
+// strcaseequal compares two strings ignoring case, as C does,
+// i.e. without any special interpretation of UTF-8 sequences.
+func strcaseequal(s1, s2 string) bool {
+	if len(s1) != len(s2) {
+		return false
+	}
+
+	for i := 0; i < len(s1); i++ {
+		c1 := s1[i]
+		c2 := s2[i]
+
+		switch {
+		case c1 == c2:
+		case toupper(c1) == toupper(c2):
+		default:
+			return false
+		}
+	}
+
+	return true
+}
+
+// toupper converts ASCII character to uppercase
+func toupper(c byte) byte {
+	if 'a' <= c && c <= 'z' {
+		c = c - 'a' + 'A'
+	}
+	return c
+}
