@@ -200,10 +200,11 @@ func main() {
 				fmt.Printf("Found new device:\n"+
 					"  Name:       %s:\n"+
 					"  Type:       %s\n"+
-					"  IP address: %s\n",
+					"  IP address: %s:%d\n",
 					evnt.InstanceName,
 					evnt.SvcType,
-					evnt.AddrPort)
+					evnt.Addr,
+					evnt.Port)
 
 				delete(wanted, evnt.InstanceName)
 
