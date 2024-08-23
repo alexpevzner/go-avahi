@@ -49,8 +49,8 @@ func TestDomainFrom(t *testing.T) {
 	}
 }
 
-// TestDomainSplit tests DomainSplit function
-func TestDomainSplit(t *testing.T) {
+// TestDomainSlice tests DomainSlice function
+func TestDomainSlice(t *testing.T) {
 	type testData struct {
 		domain string
 		labels []string
@@ -69,7 +69,7 @@ func TestDomainSplit(t *testing.T) {
 	}
 
 	for _, test := range tests {
-		labels := DomainSplit(test.domain)
+		labels := DomainSlice(test.domain)
 		if !reflect.DeepEqual(labels, test.labels) {
 			t.Errorf("%q:\n"+
 				"expected: %q\n"+
@@ -170,6 +170,56 @@ func TestDomainNormalize(t *testing.T) {
 				"expected: %q\n"+
 				"present:  %q\n",
 				test.in, test.out, out)
+		}
+	}
+}
+
+// TestDomainToLowerUpper tests DomainToLower and DomainToUpper function
+func TestDomainToLowerUpper(t *testing.T) {
+	type testData struct {
+		domain       string
+		lower, upper string
+	}
+
+	tests := []testData{
+		{
+			domain: `1.2.3.example.com`,
+			lower:  `1.2.3.example.com`,
+			upper:  `1.2.3.EXAMPLE.COM`,
+		},
+		{
+			domain: `1.2.3.EXAMPLE.COM`,
+			lower:  `1.2.3.example.com`,
+			upper:  `1.2.3.EXAMPLE.COM`,
+		},
+		{
+			domain: `привет.example.com`,
+			lower:  `привет.example.com`,
+			upper:  `привет.EXAMPLE.COM`,
+		},
+		{
+			domain: `ПРИВЕТ.example.com`,
+			lower:  `ПРИВЕТ.example.com`,
+			upper:  `ПРИВЕТ.EXAMPLE.COM`,
+		},
+	}
+
+	for _, test := range tests {
+		lower := DomainToLower(test.domain)
+		upper := DomainToUpper(test.domain)
+
+		if lower != test.lower {
+			t.Errorf("DomainToLower(%q):\n"+
+				"expected: %q\n"+
+				"present:  %q\n",
+				test.domain, test.lower, lower)
+		}
+
+		if upper != test.upper {
+			t.Errorf("DomainToUpper(%q):\n"+
+				"expected: %q\n"+
+				"present:  %q\n",
+				test.domain, test.upper, upper)
 		}
 	}
 }
