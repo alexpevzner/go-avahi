@@ -223,3 +223,131 @@ func TestDomainToLowerUpper(t *testing.T) {
 		}
 	}
 }
+
+// TestDomainServiceNameSplit tests DomainServiceNameSplit function
+func TestDomainServiceNameSplit(t *testing.T) {
+	type testData struct {
+		input                     string
+		instance, svctype, domain string
+	}
+
+	tests := []testData{
+		{
+			// Full name
+			input:    `Kyocera ECOSYS M2040dn._ipp._tcp.local`,
+			instance: "Kyocera ECOSYS M2040dn",
+			svctype:  "_ipp._tcp",
+			domain:   "local",
+		},
+
+		{
+			// Missed domain
+			input:    `Kyocera ECOSYS M2040dn._ipp._tcp`,
+			instance: "Kyocera ECOSYS M2040dn",
+			svctype:  "_ipp._tcp",
+			domain:   "",
+		},
+
+		{
+			// Long domain
+			input:    `Kyocera ECOSYS M2040dn._ipp._tcp.example.com`,
+			instance: "Kyocera ECOSYS M2040dn",
+			svctype:  "_ipp._tcp",
+			domain:   "example.com",
+		},
+
+		{
+			// Service type with subtype
+			input:    `Kyocera ECOSYS M2040dn._subtype._ipp._tcp.local`,
+			instance: "Kyocera ECOSYS M2040dn",
+			svctype:  "_subtype._ipp._tcp",
+			domain:   "local",
+		},
+
+		{
+			// Invalid service type
+			input:    `Kyocera ECOSYS M2040dn._tcp.local`,
+			instance: "",
+			svctype:  "",
+			domain:   "",
+		},
+
+		{
+			// Invalid input domain
+			input:    `www.ex\?ample.com`,
+			instance: "",
+			svctype:  "",
+			domain:   "",
+		},
+	}
+
+	for _, test := range tests {
+		instance, svctype, domain := DomainServiceNameSplit(test.input)
+		if instance != test.instance ||
+			svctype != test.svctype ||
+			domain != test.domain {
+
+			t.Errorf("%q:\n"+
+				"expected: %q %q %q\n"+
+				"present:  %q %q %q\n",
+				test.input,
+				test.instance, test.svctype, test.domain,
+				instance, svctype, domain)
+		}
+	}
+}
+
+// TestDomainServiceNameJoin tests DomainServiceNameJoin function
+func TestDomainServiceNameJoin(t *testing.T) {
+	type testData struct {
+		instance, svctype, domain string
+		output                    string
+	}
+
+	tests := []testData{
+		{
+			// Normal case
+			instance: "Kyocera ECOSYS M2040dn",
+			svctype:  "_ipp._tcp",
+			domain:   "local",
+			output:   `Kyocera ECOSYS M2040dn._ipp._tcp.local`,
+		},
+
+		{
+			// Empty instance not allowed
+			instance: "",
+			svctype:  "_ipp._tcp",
+			domain:   "local",
+			output:   ``,
+		},
+
+		{
+			// Empty service type not allowed
+			instance: "Kyocera ECOSYS M2040dn",
+			svctype:  "",
+			domain:   "local",
+			output:   ``,
+		},
+
+		{
+			// Empty domain is allowed
+			instance: "Kyocera ECOSYS M2040dn",
+			svctype:  "_ipp._tcp",
+			domain:   "",
+			output:   `Kyocera ECOSYS M2040dn._ipp._tcp`,
+		},
+	}
+
+	for _, test := range tests {
+		output := DomainServiceNameJoin(test.instance,
+			test.svctype, test.domain)
+
+		if output != test.output {
+			t.Errorf("[%q %q %q]:\n"+
+				"expected: %q\n"+
+				"present:  %q\n",
+				test.instance, test.svctype, test.domain,
+				test.output, output)
+		}
+	}
+}

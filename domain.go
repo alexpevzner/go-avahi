@@ -12,7 +12,9 @@ package avahi
 // #include <stdlib.h>
 // #include <avahi-common/domain.h>
 import "C"
-import "unsafe"
+import (
+	"unsafe"
+)
 
 // DomainFrom makes escaped domain name string from a sequence of unescaped
 // labels:
@@ -144,4 +146,74 @@ func DomainToUpper(d string) string {
 	}
 
 	return string(buf)
+}
+
+// DomainServiceNameSplit splits service name into instance, service type
+// and domain components:
+//
+//	"Kyocera ECOSYS M2040dn._ipp._tcp.local" -->
+//	    --> ["Kyocera ECOSYS M2040dn", "_ipp._tcp", "local"]
+//
+// In a case of error it returns empty strings
+func DomainServiceNameSplit(nm string) (instance, svctype, domain string) {
+	// Slice domain name into labels
+	labels := DomainSlice(nm)
+	if len(labels) < 3 {
+		// At least 3 labels are required: instance name
+		// plus service type, which is two labels at least
+		return
+	}
+
+	// First label is service name. Then some labels are
+	// service type. We consider every label in sequence, starting
+	// with the underscore character, a part of service type.
+	// The reminder is domain.
+	//
+	// So find range of labels that belong to the service type.
+	svcTypeBeg := 1
+	svcTypeEnd := 1
+
+	for svcTypeEnd < len(labels) &&
+		len(labels[svcTypeEnd]) > 1 && labels[svcTypeEnd][0] == '_' {
+		svcTypeEnd++
+	}
+
+	if svcTypeEnd-svcTypeBeg < 2 {
+		// At least 2 labels required
+		return
+	}
+
+	instance = labels[0]
+	svctype = DomainFrom(labels[svcTypeBeg:svcTypeEnd])
+	domain = DomainFrom(labels[svcTypeEnd:])
+
+	return
+}
+
+// DomainServiceNameJoin merges two parts of the full service
+// name (instance name, service type and domain name) into
+// the full service name.
+//
+//   - instance MUST be unescaped label
+//   - svctype and domain MUST be escaped domain names
+//   - instance and svctype MUST NOT be empty
+//
+// In a case of error it returns empty strings.
+// Strong validation of input strings is not performed here.
+func DomainServiceNameJoin(instance, svctype, domain string) string {
+	// instance and svctype must not be empty
+	if instance == "" || svctype == "" {
+		return ""
+	}
+
+	// Escape instance name
+	instance = DomainFrom([]string{instance})
+
+	// Join parts together
+	out := instance + "." + svctype
+	if domain != "" {
+		out += "." + domain
+	}
+
+	return out
 }
