@@ -14,6 +14,8 @@ Package reference:
 
   - https://pkg.go.dev/github.com/alexpevzner/go-avahi
 
+# Introduction
+
 Avahi is the standard implementation of Multicast DNS and DNS-SD for Linux, and
 likely for some BSD systems as well. This technology is essential for automatic
 network configuration, service discovery on local networks, and driverless
