@@ -10,6 +10,10 @@ import "github.com/alexpevzner/go-avahi"
 
 Package avahi provides a fairly complete CGo binding for Avahi client.
 
+Package reference:
+
+  - https://pkg.go.dev/github.com/alexpevzner/go-avahi
+
 Avahi is the standard implementation of Multicast DNS and DNS-SD for Linux, and
 likely for some BSD systems as well. This technology is essential for automatic
 network configuration, service discovery on local networks, and driverless
