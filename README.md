@@ -1,4 +1,4 @@
-# CGo binding for Avahi
+# Golang (cgo) binding for Avahi
 
 [![godoc.org](https://godoc.org/github.com/alexpevzner/go-avahi?status.svg)](https://godoc.org/github.com/alexpevzner/go-avahi)
 ![GitHub](https://img.shields.io/github/license/alexpevzner/go-avahi)
@@ -8,7 +8,8 @@
 import "github.com/alexpevzner/go-avahi"
 ```
 
-Package avahi provides a fairly complete CGo binding for Avahi client.
+Package avahi provides a fairly complete CGo-based Golang binding for
+Avahi client.
 
 Package reference:
 
