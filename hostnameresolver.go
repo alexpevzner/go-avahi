@@ -231,7 +231,7 @@ func hostnameResolverCallback(
 	resolver := (*cgo.Handle)(p).Value().(*HostNameResolver)
 
 	// Generate an event
-	ip := decodeAvahiAddress(caddr)
+	ip := decodeAvahiAddress(IfIndex(ifidx), caddr)
 	evnt := &HostNameResolverEvent{
 		Event:    ResolverEvent(event),
 		IfIdx:    IfIndex(ifidx),

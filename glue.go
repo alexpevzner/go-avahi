@@ -11,6 +11,7 @@ package avahi
 
 import (
 	"net/netip"
+	"strconv"
 	"unsafe"
 )
 
@@ -39,7 +40,7 @@ func makeAvahiAddress(addr netip.Addr) (C.AvahiAddress, error) {
 }
 
 // decodeAvahiAddress decodes C.AvahiAddress
-func decodeAvahiAddress(caddr *C.AvahiAddress) netip.Addr {
+func decodeAvahiAddress(ifindex IfIndex, caddr *C.AvahiAddress) netip.Addr {
 	var ip netip.Addr
 
 	switch {
@@ -50,6 +51,10 @@ func decodeAvahiAddress(caddr *C.AvahiAddress) netip.Addr {
 		ip = netip.AddrFrom4(*(*[4]byte)(unsafe.Pointer(&caddr.data)))
 	case caddr.proto == C.AVAHI_PROTO_INET6:
 		ip = netip.AddrFrom16(*(*[16]byte)(unsafe.Pointer(&caddr.data)))
+	}
+
+	if ip.Is6() && ip.IsLinkLocalUnicast() {
+		ip = ip.WithZone(strconv.Itoa(int(ifindex)))
 	}
 
 	return ip

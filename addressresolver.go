@@ -170,7 +170,7 @@ func addressResolverCallback(
 	clnt := resolver.clnt
 
 	// Generate an event
-	ip := decodeAvahiAddress(caddr)
+	ip := decodeAvahiAddress(IfIndex(ifidx), caddr)
 	evnt := &AddressResolverEvent{
 		Event:    ResolverEvent(event),
 		IfIdx:    IfIndex(ifidx),

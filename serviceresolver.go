@@ -229,7 +229,7 @@ func serviceResolverCallback(
 	clnt := resolver.clnt
 
 	// Decode IP address:port
-	ip := decodeAvahiAddress(caddr)
+	ip := decodeAvahiAddress(IfIndex(ifidx), caddr)
 
 	// Decode TXT record
 	txt := decodeAvahiStringList(ctxt)

@@ -439,6 +439,24 @@ If this flag is in use, the following changes will occur:
     default [ProtocolIP6], to be consistent with other Avahi API
     (see section "IP4 vs IP6" for details).
 
+# IP addresses
+
+This package uniformly uses [netip.Addr] to represent addresses. Unlike
+[net.Addr], this format is compact, convenient and comparable.
+
+When addresses are received from Avahi (for example, as a part of
+[ServiceResolverEvent]), the following rules apply:
+  - IPv4 addresses are represented as 4-byte netip.Addr, not as
+    16-byte IP6-mapped IP4 addresses.
+  - Link-local IPv6 addresses come with zone. For zone, numerical,
+    not symbolic, format is used (i.e., fe80::1ff:fe23:4567:890a%3,
+    not fe80::1ff:fe23:4567:890a%eth2)
+
+When address is sent from application to Avahi, the following
+rules apply:
+  - Both genuine IP4 and IP6-mapped IP4 addresses are equally accepted
+  - For IP6 addresses, zone is ignored
+
 # The Poller
 
 [Poller] is the helper object that allows to simplify the event loop
