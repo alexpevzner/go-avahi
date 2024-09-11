@@ -57,7 +57,7 @@ func (q *eventqueue[T]) Close() {
 	q.lock.Unlock()
 	q.closewait.Wait()
 
-	// Not it is safe to close output channel
+	// Now it is safe to close output channel
 	close(q.outchan)
 }
 
