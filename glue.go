@@ -18,6 +18,7 @@ import (
 // #cgo pkg-config: avahi-client
 //
 // #include <avahi-client/client.h>
+// #include <net/if.h>
 import "C"
 
 // makeAvahiAddress makes C.AvahiAddress
@@ -54,10 +55,25 @@ func decodeAvahiAddress(ifindex IfIndex, caddr *C.AvahiAddress) netip.Addr {
 	}
 
 	if ip.Is6() && ip.IsLinkLocalUnicast() {
-		ip = ip.WithZone(strconv.Itoa(int(ifindex)))
+		ip = ip.WithZone(zoneName(ifindex))
 	}
 
 	return ip
+}
+
+// zoneName returns IPv6 zone name (which is the same as the
+// network interface name) by interface index.
+func zoneName(ifindex IfIndex) string {
+	var buf [C.IF_NAMESIZE]C.char
+
+	// Try if_indextoname
+	s := C.if_indextoname(C.uint(ifindex), &buf[0])
+	if s != nil {
+		return C.GoString(s)
+	}
+
+	// Fallback to numerical name. Go stdlib does the same.
+	return strconv.Itoa(int(ifindex))
 }
 
 // makeAvahiStringList makes C.AvahiStringList
