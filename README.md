@@ -41,6 +41,10 @@ This package has the following key differences:
   - And the last but not least, it attempts to fill the gaps
     in Avahi documentation, which is not very detailed
 
+There is also DNS implementation on pure Go:
+
+  - https://pkg.go.dev/github.com/brutella/dnssd
+
 This library is comprehensive, high-quality, and quite popular. It is possible
 (and not very difficult) to implement MDNS/DNS-SD directly on top of it,
 allowing the entire protocol to run within the user process without relying on
