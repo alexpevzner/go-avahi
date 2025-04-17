@@ -382,7 +382,7 @@ It can be summarized by the following table:
 	proto           addrproto       transport       query for
 
 	ProtocolIP4     ProtocolIP4     IP4             IP4
-	ProtocolIP4     ProtocolIP6     IP4		IP6
+	ProtocolIP4     ProtocolIP6     IP4             IP6
 	ProtocolIP4     ProtocolUnspec  IP4             IP4
 
 	ProtocolIP6     ProtocolIP4     IP6             IP4
@@ -448,9 +448,11 @@ When addresses are received from Avahi (for example, as a part of
 [ServiceResolverEvent]), the following rules apply:
   - IPv4 addresses are represented as 4-byte netip.Addr, not as
     16-byte IP6-mapped IP4 addresses.
-  - Link-local IPv6 addresses come with zone. For zone, numerical,
-    not symbolic, format is used (i.e., fe80::1ff:fe23:4567:890a%3,
-    not fe80::1ff:fe23:4567:890a%eth2)
+  - Link-local IPv6 addresses come with zone. For zone, symbolic,
+    not numerical, format is used (i.e., fe80::1ff:fe23:4567:890a%eth2
+    not fe80::1ff:fe23:4567:890a%3). If the symbolic zone name cannot
+    be obtained for some reason, fallback to the numeric format will
+    be performed. This behavior is consistent with the Go stdlib.
 
 When address is sent from application to Avahi, the following
 rules apply:
