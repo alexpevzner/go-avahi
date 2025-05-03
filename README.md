@@ -1,11 +1,11 @@
 # Golang (cgo) binding for Avahi
 
-[![godoc.org](https://godoc.org/github.com/alexpevzner/go-avahi?status.svg)](https://godoc.org/github.com/alexpevzner/go-avahi)
-![GitHub](https://img.shields.io/github/license/alexpevzner/go-avahi)
-[![Go Report Card](https://goreportcard.com/badge/github.com/alexpevzner/go-avahi)](https://goreportcard.com/report/github.com/alexpevzner/go-avahi)
+[![godoc.org](https://godoc.org/github.com/OpenPrinting/go-avahi?status.svg)](https://godoc.org/github.com/OpenPrinting/go-avahi)
+![GitHub](https://img.shields.io/github/license/OpenPrinting/go-avahi)
+[![Go Report Card](https://goreportcard.com/badge/github.com/OpenPrinting/go-avahi)](https://goreportcard.com/report/github.com/OpenPrinting/go-avahi)
 
 ```
-import "github.com/alexpevzner/go-avahi"
+import "github.com/OpenPrinting/go-avahi"
 ```
 
 Package avahi provides a fairly complete CGo-based Golang binding for
@@ -13,7 +13,7 @@ Avahi client.
 
 Package reference:
 
-  - https://pkg.go.dev/github.com/alexpevzner/go-avahi
+  - https://pkg.go.dev/github.com/OpenPrinting/go-avahi
 
 # Introduction
 
@@ -70,7 +70,7 @@ understand unless you have a lot of a-priory knowledge in the subject.
 Among other things, this package attempts to fill this gap. As its
 exported objects map very closely to the native C API objects (except
 Go vs C naming conventions and using channels instead of callbacks),
-[the package reference](https://godoc.org/github.com/alexpevzner/go-avahi)
+[the package reference](https://godoc.org/github.com/OpenPrinting/go-avahi)
 may be useful as a generic Avahi API reference, regardless of
 programming language you use.
 
@@ -107,7 +107,7 @@ this package. This simple program scans local network for available network
 printers and outputs found devices.
 
 ```
-// github.com/alexpevzner/go-avahi example
+// github.com/OpenPrinting/go-avahi example
 
 package main
 
@@ -117,7 +117,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/alexpevzner/go-avahi"
+	"github.com/OpenPrinting/go-avahi"
 )
 
 // checkErr terminates a program if err is not nil.

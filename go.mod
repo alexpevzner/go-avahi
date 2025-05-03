@@ -1,3 +1,3 @@
-module github.com/alexpevzner/go-avahi
+module github.com/OpenPrinting/go-avahi
 
 go 1.18
